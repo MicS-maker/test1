@@ -298,7 +298,7 @@
       <p class="msg-count" id="msgCount">💌 …</p>
       <input type="text" id="msgName" class="msg-name" placeholder="Euer Name (freiwillig)" autocomplete="off">
       <textarea id="msgText" class="msg-text" rows="3" placeholder="Eure Nachricht an uns…"></textarea>
-      <div class="rec-zone">
+      <div class="rec-zone" id="recZone">
         <button class="rec-btn" id="recBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4"/></svg>
           <span id="recLabel" data-i18n="recBtn">Sprachnachricht aufnehmen</span>
@@ -386,7 +386,7 @@
 
 // Supabase – neues kommerzielles Projekt
 const SUPABASE_URL = "https://icdlpivflthfotraxtqy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_-NBQeOr46tAHPJyWR-NbmA_Qgcqny4t";
+const SUPABASE_KEY = "HIER_DEINEN_PUBLISHABLE_KEY_EINFUEGEN";
 
 // Event-ID – wird aus der URL gelesen (z.B. /moments/hochzeiten/mueller2024)
 // Oder hier manuell setzen für Tests:
@@ -581,6 +581,20 @@ function applyEventConfig(){
 
   // Upload-Limit prüfen
   checkUploadLimit();
+  // Paket-Features steuern
+  applyPaketFeatures();
+}
+
+function applyPaketFeatures(){
+  const paket = eventConfig.paket || 'premium';
+  const msgWrap = document.querySelector('.msg-wrap');
+  const recZone = document.getElementById('recZone');
+  if(paket === 'live'){
+    if(msgWrap) msgWrap.style.display = 'none';
+  }
+  if(paket === 'live'){
+    if(recZone) recZone.style.display = 'none';
+  }
 }
 
 function shadeColor(hex, percent){
@@ -634,7 +648,6 @@ pwInput.focus();
    ============================================================ */
 function compressImage(file, maxWidth){
   return new Promise((resolve)=>{
-    // Fallback: Datei direkt verwenden wenn Komprimierung fehlschlägt
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = ()=>{
@@ -646,13 +659,7 @@ function compressImage(file, maxWidth){
       canvas.width=w; canvas.height=h;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img,0,0,w,h);
-      canvas.toBlob(blob=>{
-        resolve(blob||file);
-      },'image/jpeg',0.85);
-    };
-    img.onerror = ()=>{
-      URL.revokeObjectURL(url);
-      resolve(file); // Originaldatei als Fallback
+      canvas.toBlob(blob=>resolve(blob),'image/jpeg',0.85);
     };
     img.src=url;
   });
@@ -662,15 +669,12 @@ function compressImage(file, maxWidth){
    Upload zu Supabase Storage
    ============================================================ */
 async function uploadToSupabase(blob, path){
-  const contentType = blob.type && blob.type !== 'application/octet-stream' 
-    ? blob.type 
-    : 'image/jpeg';
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/moments/${path}`,{
-    method:'PUT',
+    method:'POST',
     headers:{
       apikey: SB_KEY,
       Authorization: `Bearer ${SB_KEY}`,
-      'Content-Type': contentType,
+      'Content-Type': 'image/jpeg',
       'x-upsert': 'true'
     },
     body: blob
@@ -784,15 +788,14 @@ fileInput.addEventListener('change',async()=>{
       const thumbPath = `${filename}_thumb.jpg`;
       const thumbUrl = await uploadToSupabase(thumbBlob, thumbPath);
 
-      // Vollbild im Hintergrund hochladen (2000px) - nicht blockierend
-      compressImage(file, 2000).then(fullBlob => {
+      // Vollbild im Hintergrund hochladen (2000px)
+      const fullBlob = await compressImage(file, 2000);
       const fullPath = `${filename}_full.jpg`;
       uploadToSupabase(fullBlob, fullPath).catch(e=>console.warn('Full upload:', e));
-      }).catch(e=>console.warn('Full compress:', e));
 
       // Counter erhöhen
       await incrementUploadCount();
-      await savePhotoRecord(thumbPath, thumbUrl);
+      await savePhotoRecord(thumbUrl, thumbUrl);
 
     }catch(err){
       console.error('Upload Fehler:', err);
@@ -852,16 +855,18 @@ async function addLike(photoId){
   if(!sbReady)return;
   likeCounts[photoId]=(likeCounts[photoId]||0)+1;
   try{
-    await fetch(`${SUPABASE_URL}/rest/v1/likes`,{
-      method:'POST',
-      headers:{
-        apikey:SB_KEY,
-        Authorization:`Bearer ${SB_KEY}`,
-        'Content-Type':'application/json',
-        Prefer:'resolution=merge-duplicates'
-      },
-      body:JSON.stringify({photo_id:photoId, count:likeCounts[photoId]})
+    // Likes erhöhen oder neu anlegen
+    const existing = await fetch(`${SUPABASE_URL}/rest/v1/likes?photo_id=eq.${encodeURIComponent(photoId)}`,{
+      headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}
     });
+    const rows = await existing.json();
+    if(rows.length>0){
+      await fetch(`${SUPABASE_URL}/rest/v1/likes?photo_id=eq.${encodeURIComponent(photoId)}`,{
+        method:'PATCH',
+        headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Content-Type':'application/json'},
+        body:JSON.stringify({count: (rows[0].count||0)+1})
+      });
+    }
   }catch(e){console.warn('Like:', e);}
 }
 
@@ -1045,11 +1050,10 @@ const msgName=document.getElementById('msgName'),
 async function loadMsgCount(){
   if(!sbReady)return;
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/messages?event_id=eq.${EVENT_ID}&select=*`,{
-      headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/messages?event_id=eq.${EVENT_ID}&select=id`,{
+      headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Prefer':'count=exact'}
     });
-    const rows=await res.json();
-    const count=rows.length||0;
+    const count=parseInt(res.headers.get('content-range')?.split('/')[1]||'0');
     document.getElementById('msgCount').textContent=count>0?t('msgCount',count):t('msgEmpty');
   }catch(e){document.getElementById('msgCount').textContent=t('msgEmpty');}
 }
