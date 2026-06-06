@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Moments</title>
-<!-- Home-Bildschirm-Icon (Apple) -->
+<!-- Home-Bildschirm-Icon (Apple) + PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Moments">
+<link rel="apple-touch-icon" href="https://res.cloudinary.com/dq7iewz5y/image/upload/w_180,h_180,c_fill,f_png/v1780087806/sqqem8dneeeeblqmxuz2.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -1063,9 +1068,7 @@ async function getSignedUrl(path) {
     });
     if (!res.ok) throw new Error('sign failed');
     const { signedURL } = await res.json();
-    if (signedURL.startsWith('http')) return signedURL;
-    if (signedURL.startsWith('/storage/')) return `${SUPABASE_URL}${signedURL}`;
-    return `${SUPABASE_URL}/storage/v1${signedURL}`;
+    return `${SUPABASE_URL}${signedURL}`;
   } catch(e) {
     // Fallback: public URL (wenn Bucket noch public ist)
     return `${SUPABASE_URL}/storage/v1/object/public/moments/${path}`;
@@ -1097,14 +1100,8 @@ async function signUrls(paths) {
       const signed = r.signedURL || r.signedUrl || r.signed_url;
       const key = r.path || paths[i];
       if (signed) {
-        if (signed.startsWith('http')) {
-          map[key] = signed;
-        } else if (signed.startsWith('/storage/')) {
-          map[key] = `${SUPABASE_URL}${signed}`;
-        } else {
-          // signed = '/object/sign/...' → /storage/v1 davor
-          map[key] = `${SUPABASE_URL}/storage/v1${signed}`;
-        }
+        // signed kann absolut oder relativ sein
+        map[key] = signed.startsWith('http') ? signed : `${SUPABASE_URL}${signed}`;
       }
     });
     console.log('signUrls map keys:', Object.keys(map).length, '/', paths.length);
