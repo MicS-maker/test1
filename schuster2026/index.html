@@ -1072,6 +1072,7 @@ async function getSignedUrl(path) {
 
 // Mehrere URLs parallel signieren
 async function signUrls(paths) {
+  if (!paths || !paths.length) return {};
   try {
     const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/moments`, {
       method: 'POST',
@@ -1082,15 +1083,27 @@ async function signUrls(paths) {
       },
       body: JSON.stringify({ paths, expiresIn: 86400 })
     });
-    if (!res.ok) throw new Error('batch sign failed');
+    if (!res.ok) {
+      console.warn('signUrls HTTP error:', res.status);
+      throw new Error('batch sign failed');
+    }
     const results = await res.json();
+    console.log('signUrls response sample:', results[0]);
     const map = {};
-    results.forEach(r => {
-      if (r.signedURL) map[r.path] = `${SUPABASE_URL}${r.signedURL}`;
+    results.forEach((r, i) => {
+      // Supabase gibt entweder signedURL oder signedUrl zurück
+      const signed = r.signedURL || r.signedUrl || r.signed_url;
+      const key = r.path || paths[i];
+      if (signed) {
+        // signed kann absolut oder relativ sein
+        map[key] = signed.startsWith('http') ? signed : `${SUPABASE_URL}${signed}`;
+      }
     });
+    console.log('signUrls map keys:', Object.keys(map).length, '/', paths.length);
     return map;
   } catch(e) {
-    // Fallback: public URLs
+    console.warn('signUrls fallback:', e);
+    // Fallback: public URLs (funktioniert wenn Bucket noch public)
     const map = {};
     paths.forEach(p => map[p] = `${SUPABASE_URL}/storage/v1/object/public/moments/${p}`);
     return map;
