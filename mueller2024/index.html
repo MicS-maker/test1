@@ -10,23 +10,56 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --accent: #a874c4;
-    --accent-deep: #7a4e9a;
-    --lav: #c9a8e0;
-    --rose: #e8a9c0;
-    --cream: #fdf6ff;
-    --ink: #2d1f3d;
-    --soft-ink: #7a6a8a;
-    --line: #e8d8f0;
-    --bg: #f9f0ff;
+    --accent:      #888888;
+    --accent-deep: #555555;
+    --lav:         #aaaaaa;
+    --rose:        #aaaaaa;
+    --cream:       #f8f8f8;
+    --ink:         #222222;
+    --soft-ink:    #666666;
+    --line:        #dddddd;
+    --bg:          #f8f8f8;
+    /* Neutrale Defaults – werden sofort per JS mit Event-Farben überschrieben */
+    --shadow-primary: rgba(100,100,100,.4);
+    --shadow-soft:    rgba(100,100,100,.2);
+    --shadow-pulse:   rgba(100,100,100,.4);
+  }
+
+  /* Lade-Splash – verhindert Farb-Flackern */
+  #colorSplash {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .4s ease;
+  }
+  #colorSplash.fade {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #colorSplash .splash-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin: 0 5px;
+    animation: splashPulse 1s ease-in-out infinite;
+  }
+  #colorSplash .splash-dot:nth-child(2) { animation-delay: .15s; }
+  #colorSplash .splash-dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes splashPulse {
+    0%,100% { transform: scale(.6); opacity: .4; }
+    50%      { transform: scale(1);  opacity: 1;  }
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{min-height:100%;background:var(--bg);font-family:'Jost',sans-serif;color:var(--ink)}
 
   /* === Passwort-Lock === */
-  .lock{position:fixed;inset:0;background:linear-gradient(135deg,#f9f0ff,#fff0f7);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px}
+  .lock{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px;opacity:0;transition:opacity .3s}
   .lock.hidden{display:none}
-  .lock-card{background:#fff;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px -20px rgba(168,116,196,.35)}
+  .lock-card{background:#fff;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px -20px rgba(0,0,0,.15)}
   .lock-card .ornament{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:20px}
   .lock-card .ornament .line{flex:1;height:1px;background:var(--line);max-width:60px}
   .lock-card .ornament .dot{color:var(--lav);font-size:14px}
@@ -35,46 +68,80 @@
   .lock-card p{font-size:14px;color:var(--soft-ink);line-height:1.6;margin-bottom:20px}
   .lock-card input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:14px;font-family:inherit;font-size:16px;outline:none;text-align:center;letter-spacing:.15em;margin-bottom:14px;transition:border-color .2s}
   .lock-card input:focus{border-color:var(--accent)}
-  .lock-card button{width:100%;padding:14px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;border-radius:50px;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:.08em;cursor:pointer}
+  .lock-card button{width:100%;padding:14px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--accent));color:#fff;border:none;border-radius:50px;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:.08em;cursor:pointer}
   .lock-err{color:#c0607f;font-size:13px;margin-top:10px;min-height:18px}
 
   /* === Bokeh === */
   .bokeh{position:fixed;border-radius:50%;filter:blur(60px);opacity:.25;pointer-events:none;z-index:0}
   .b1{width:320px;height:320px;background:var(--lav);top:-80px;left:-80px}
   .b2{width:260px;height:260px;background:var(--rose);bottom:10%;right:-60px}
-  .b3{width:200px;height:200px;background:#f0d0ff;top:40%;left:20%}
-  .b4{width:180px;height:180px;background:#ffd0e8;bottom:5%;left:10%}
+  .b3{width:200px;height:200px;background:var(--lav);top:40%;left:20%}
+  .b4{width:180px;height:180px;background:var(--rose);bottom:5%;left:10%}
 
   /* === Card === */
-  .card{position:relative;max-width:480px;margin:0 auto;padding:0 0 60px;z-index:1}
+  .card{position:relative;max-width:520px;margin:0 auto;padding:0 0 80px;z-index:1}
 
   /* === Hero === */
-  .hero{position:relative;width:100%;text-align:center;padding:36px 0 20px}
-  .hero-img{width:180px;height:180px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 8px 32px -8px rgba(168,116,196,.5);cursor:pointer}
-  .sparkle{position:absolute;color:var(--lav);font-size:16px;animation:twinkle 3s ease-in-out infinite}
+  .hero{position:relative;width:100%;text-align:center;padding:48px 0 28px}
+  .hero-img{width:220px;height:220px;border-radius:50%;object-fit:cover;border:5px solid #fff;box-shadow:0 12px 48px -12px var(--shadow-primary);cursor:pointer;transition:transform .3s}
+  .hero-img:hover{transform:scale(1.03)}
+  .sparkle{position:absolute;color:var(--lav);font-size:20px;animation:twinkle 3s ease-in-out infinite}
   .s1{top:30px;left:15%}.s2{top:60px;right:12%}.s3{bottom:20px;left:25%}
   @keyframes twinkle{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
 
   /* === Body === */
-  .body{padding:0 32px}
-  .ornament{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:18px}
+  .body{padding:0 36px}
+  .ornament{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:24px}
   .ornament .line{flex:1;height:1px;background:var(--line)}
-  .ornament .dot{color:var(--lav);font-size:14px}
+  .ornament .dot{color:var(--lav);font-size:18px}
   .ornament .r{transform:scaleX(-1)}
-  .eyebrow{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-deep);text-align:center;margin-bottom:8px}
-  h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:400;text-align:center;color:var(--ink);line-height:1.1;margin-bottom:8px}
+  .eyebrow{font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent-deep);text-align:center;margin-bottom:10px}
+  h1{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:400;text-align:center;color:var(--ink);line-height:1.05;margin-bottom:12px}
   .amp{color:var(--accent);font-style:italic}
-  .date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--soft-ink);margin-bottom:20px;text-align:center}
-  .quote{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--soft-ink);line-height:1.5;max-width:330px;margin:0 auto 28px;text-align:center}
-  .divider{width:60px;height:1px;background:var(--line);margin:0 auto 26px}
-  .instructions{font-size:14px;color:var(--soft-ink);line-height:1.6;margin-bottom:26px;text-align:center}
+  .date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--soft-ink);margin-bottom:10px;text-align:center}
+  .quote{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:var(--soft-ink);line-height:1.6;max-width:340px;margin:0 auto 36px;text-align:center}
+  .divider{width:80px;height:1px;background:var(--line);margin:0 auto 36px}
+  .instructions{font-size:15px;color:var(--soft-ink);line-height:1.7;margin-bottom:36px;text-align:center}
 
   /* === Upload === */
-  .upload-btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.06em;padding:16px 32px;border-radius:50px;box-shadow:0 14px 28px -10px rgba(168,116,196,.7);transition:transform .2s,box-shadow .2s,filter .2s;display:flex;margin:0 auto 10px;-webkit-tap-highlight-color:transparent}
-  .upload-btn:hover{transform:translateY(-2px);box-shadow:0 20px 36px -10px rgba(168,116,196,.8);filter:brightness(1.05)}
+  .upload-btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:16px;letter-spacing:.06em;padding:18px 40px;border-radius:50px;box-shadow:0 14px 28px -10px var(--shadow-primary);transition:transform .2s,box-shadow .2s,filter .2s;display:flex;margin:0 auto 14px;-webkit-tap-highlight-color:transparent}
+  .upload-btn:hover{transform:translateY(-2px);box-shadow:0 20px 36px -10px var(--shadow-primary);filter:brightness(1.05)}
   .upload-btn:active{transform:translateY(0)}
   .upload-btn svg{width:20px;height:20px;flex:none}
   .hint{font-size:13px;color:var(--soft-ink);text-align:center;margin-bottom:28px}
+
+  /* === Drag-Drop Zone === */
+  .drop-zone{
+    border:2px dashed var(--line);
+    border-radius:20px;
+    padding:36px 24px;
+    text-align:center;
+    margin-bottom:28px;
+    transition:border-color .2s, background .2s;
+    cursor:pointer;
+    position:relative;
+  }
+  .drop-zone.drag-over{
+    border-color:var(--accent);
+    background:var(--cream);
+  }
+  .drop-zone .drop-icon{
+    font-size:36px;
+    margin-bottom:12px;
+    display:block;
+    opacity:.6;
+  }
+  .drop-zone .drop-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:20px;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .drop-zone .drop-sub{
+    font-size:13px;
+    color:var(--soft-ink);
+    margin-bottom:18px;
+  }
   input[type=file]{display:none}
 
   /* Limit-Warnung */
@@ -87,12 +154,12 @@
   .bar{height:6px;background:#efe3f3;border-radius:50px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lav),var(--rose));border-radius:50px;transition:width .3s}
   .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
-  .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 4px 12px -4px rgba(168,116,196,.4)}
+  .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 4px 12px -4px var(--shadow-soft)}
 
   /* === Done === */
   .done{display:none;text-align:center;padding:28px 0}
   .done.show{display:block}
-  .check{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--lav),var(--accent-deep));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 20px -6px rgba(168,116,196,.6)}
+  .check{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--lav),var(--accent-deep));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 20px -6px var(--shadow-primary)}
   .check svg{width:28px;height:28px;color:#fff}
   .done h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);margin-bottom:8px}
   .done p{font-size:14px;color:var(--soft-ink);margin-bottom:16px}
@@ -100,8 +167,8 @@
   .again:hover{background:var(--cream)}
 
   /* === Galerie === */
-  .gallery-wrap{margin-top:40px}
-  .gallery-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--ink);text-align:center;margin-bottom:16px}
+  .gallery-wrap{margin-top:56px}
+  .gallery-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:var(--ink);text-align:center;margin-bottom:20px}
   .gallery-hint{font-size:13px;color:var(--soft-ink);text-align:center;margin-bottom:16px}
   .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .tile{position:relative;aspect-ratio:1;overflow:hidden;border-radius:12px;cursor:pointer}
@@ -117,7 +184,7 @@
   .podium-row{display:flex;align-items:flex-end;justify-content:center;gap:12px}
   .podium-item{flex:1;max-width:110px;text-align:center;cursor:pointer}
   .podium-item .rank{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--accent-deep)}
-  .podium-item img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 6px 16px -6px rgba(150,110,170,.5);transition:transform .2s}
+  .podium-item img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 6px 16px -6px var(--shadow-soft);transition:transform .2s}
   .podium-item:hover img{transform:scale(1.05)}
   .podium-item.p1{order:2;transform:translateY(-8px)}
   .podium-item.p2{order:1}
@@ -140,7 +207,7 @@
   .lb-like svg{width:20px;height:20px;fill:var(--rose)}
 
   /* === Gästebuch === */
-  .msg-wrap{margin-top:38px;padding-top:30px;border-top:1px solid var(--line)}
+  .msg-wrap{margin-top:56px;padding-top:40px;border-top:1px solid var(--line)}
   .msg-count{font-size:14px;color:var(--accent-deep);margin-bottom:20px;font-weight:500;letter-spacing:.02em;text-align:center}
   .msg-name,.msg-text{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;font-family:'Jost',sans-serif;font-size:15px;color:var(--ink);padding:13px 16px;outline:none;transition:border-color .2s;margin-bottom:12px;resize:vertical}
   .msg-name:focus,.msg-text:focus{border-color:var(--accent)}
@@ -149,10 +216,10 @@
   .rec-btn:hover{background:var(--accent);color:#fff}
   .rec-btn.recording{background:var(--rose);border-color:var(--rose);color:#fff;animation:pulse 1.3s ease-in-out infinite}
   .rec-btn svg{width:18px;height:18px;flex:none}
-  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,169,192,.6)}50%{box-shadow:0 0 0 10px rgba(232,169,192,0)}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--shadow-pulse)}50%{box-shadow:0 0 0 10px transparent}}
   .rec-status{font-size:13px;color:var(--soft-ink);margin-top:10px;min-height:16px}
   .rec-preview{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:14px}
-  .player{display:flex;align-items:center;gap:14px;width:100%;background:#fff;border:1px solid var(--line);border-radius:50px;padding:10px 16px 10px 10px;box-shadow:0 4px 14px -6px rgba(150,110,170,.3)}
+  .player{display:flex;align-items:center;gap:14px;width:100%;background:#fff;border:1px solid var(--line);border-radius:50px;padding:10px 16px 10px 10px;box-shadow:0 4px 14px -6px var(--shadow-soft)}
   .player-btn{flex:none;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));display:flex;align-items:center;justify-content:center;transition:transform .15s;-webkit-tap-highlight-color:transparent}
   .player-btn:active{transform:scale(.92)}
   .player-btn svg{width:22px;height:22px;fill:#fff}
@@ -162,7 +229,7 @@
   .player-time{display:flex;justify-content:space-between;font-size:11px;color:var(--soft-ink);margin-top:5px;letter-spacing:.03em}
   .rec-redo{background:none;border:1px solid var(--line);color:var(--soft-ink);padding:10px 22px;border-radius:50px;font-family:'Jost',sans-serif;font-size:14px;cursor:pointer;transition:background .2s}
   .rec-redo:hover{background:var(--cream)}
-  .msg-send{width:100%;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.06em;padding:15px;border-radius:50px;box-shadow:0 14px 28px -10px rgba(168,116,196,.7);transition:transform .2s,filter .2s,opacity .2s}
+  .msg-send{width:100%;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.06em;padding:15px;border-radius:50px;box-shadow:0 14px 28px -10px var(--shadow-primary);transition:transform .2s,filter .2s,opacity .2s}
   .msg-send:hover{transform:translateY(-2px);filter:brightness(1.05)}
   .msg-send:disabled{opacity:.55;cursor:not-allowed;transform:none}
   .msg-feedback{font-size:14px;margin-top:14px;min-height:20px;color:var(--accent-deep);text-align:center}
@@ -215,7 +282,154 @@
   .pw-error{color:#b5532f;font-size:13px;margin-top:-6px;margin-bottom:10px;display:none}
   .pw-error.show{display:block}
 
-  .footer{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--soft-ink);margin-top:40px;padding:20px 0}
+  .footer{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--soft-ink);margin-top:60px;padding:20px 0}
+
+  /* === Scroll-Animationen === */
+  .fade-in{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .fade-in.visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+  /* === Foto-Schutz === */
+  img { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  .gallery img, .lightbox img, .podium-item img {
+    pointer-events:none;
+  }
+  /* Lightbox-Buttons brauchen pointer-events */
+  .lb-close, .lb-nav, .lb-like, .del-btn { pointer-events:all; }
+
+  /* === Beamer-Modus === */
+  body.screen-mode {
+    background:#000 !important;
+    overflow:hidden;
+  }
+  #screenOverlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:9000;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  body.screen-mode #screenOverlay { display:flex; }
+
+  /* Slideshow */
+  #screenSlide {
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  #screenSlide img {
+    max-width:100vw;
+    max-height:100vh;
+    object-fit:contain;
+    opacity:0;
+    transition:opacity .8s ease;
+    pointer-events:none;
+    user-select:none;
+  }
+  #screenSlide img.visible { opacity:1; }
+
+  /* Live-Grid */
+  #screenGrid {
+    display:none;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    padding:16px;
+    box-sizing:border-box;
+  }
+  #screenGrid.active { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; align-content:start; }
+  #screenGrid img {
+    width:100%;
+    aspect-ratio:1;
+    object-fit:cover;
+    border-radius:10px;
+    opacity:0;
+    transition:opacity .6s;
+    pointer-events:none;
+  }
+  #screenGrid img.visible { opacity:1; }
+
+  /* QR-Badge */
+  #screenQR {
+    position:fixed;
+    bottom:80px;
+    right:28px;
+    background:rgba(255,255,255,.12);
+    backdrop-filter:blur(8px);
+    border-radius:14px;
+    padding:12px 16px;
+    text-align:center;
+    color:#fff;
+    font-size:12px;
+    letter-spacing:.08em;
+    z-index:9100;
+  }
+  #screenQR .qr-url { font-size:15px; font-weight:600; margin-top:6px; color:#fff; }
+
+  /* Steuerleiste */
+  #screenBar {
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:14px 20px;
+    background:linear-gradient(transparent,rgba(0,0,0,.85));
+    z-index:9200;
+    transition:opacity .4s;
+  }
+  #screenBar.hidden { opacity:0; pointer-events:none; }
+  .sc-btn {
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.25);
+    color:#fff;
+    border-radius:50px;
+    padding:8px 18px;
+    font-family:'Jost',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:background .2s;
+    backdrop-filter:blur(6px);
+  }
+  .sc-btn:hover { background:rgba(255,255,255,.3); }
+  .sc-btn.active { background:rgba(255,255,255,.35); border-color:#fff; }
+  #screenCounter {
+    color:rgba(255,255,255,.5);
+    font-size:12px;
+    min-width:60px;
+    text-align:center;
+  }
+  #screenNewBadge {
+    position:fixed;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(168,116,196,.9);
+    color:#fff;
+    border-radius:50px;
+    padding:6px 18px;
+    font-size:13px;
+    font-weight:500;
+    z-index:9300;
+    opacity:0;
+    transition:opacity .5s;
+    pointer-events:none;
+  }
+  #screenNewBadge.show { opacity:1; }
 </style>
 </head>
 <body>
@@ -231,6 +445,13 @@
     <button id="pwBtn">Weiter</button>
     <div class="lock-err" id="pwErr"></div>
   </div>
+</div>
+
+<!-- Farb-Splash (verhindert Flackern bis Supabase antwortet) -->
+<div id="colorSplash">
+  <div class="splash-dot"></div>
+  <div class="splash-dot"></div>
+  <div class="splash-dot"></div>
 </div>
 
 <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div><div class="bokeh b4"></div>
@@ -252,10 +473,12 @@
   </div>
 
   <div class="body">
-    <div class="ornament"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
-    <div class="eyebrow" id="eventEyebrow" data-i18n="eyebrowWedding">Hochzeit</div>
+    <div class="ornament fade-in"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
+    <div class="eyebrow fade-in" id="eventEyebrow" data-i18n="eyebrowWedding">Hochzeit</div>
     <h1 id="eventNames">Moments</h1>
     <div class="date" id="eventDate"></div>
+    <div id="eventDateRange" style="display:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--soft-ink);margin-bottom:8px;text-align:center;letter-spacing:.02em;"></div>
+    <div id="inactiveHint" style="display:none;background:#fdecea;border:1px solid #f5c6c2;border-radius:12px;padding:12px 16px;font-size:13px;color:#c0392b;margin:0 0 18px;line-height:1.5;text-align:center;">⏳ <span id="inactiveMsg">Die Galerie ist außerhalb des aktiven Zeitraums. Uploads und Nachrichten sind derzeit deaktiviert.</span></div>
     <p class="quote" data-i18n="quote">„Die schönsten Momente seht ihr durch eure Augen – teilt sie mit uns."</p>
     <div class="divider"></div>
     <p class="instructions" data-i18n="instructions">Habt ihr ein schönes Foto gemacht?<br>Ladet es hier in wenigen Sekunden hoch – ganz ohne Anmeldung.</p>
@@ -267,14 +490,19 @@
       <span data-i18n="consent">Ich habe die Rechte an den Fotos und bin einverstanden, dass sie allen Gästen dieser Feier in der Galerie gezeigt werden.</span>
     </label>
 
-    <button class="upload-btn" id="pickBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-        <circle cx="12" cy="13" r="3.5"/>
-      </svg>
-      <span data-i18n="pickBtn">Fotos auswählen</span>
-    </button>
-    <div class="hint" data-i18n="pickHint">Mehrere Fotos auf einmal möglich</div>
+    <div class="drop-zone" id="dropZone">
+      <span class="drop-icon">📸</span>
+      <div class="drop-title" data-i18n="dropTitle">Fotos hier ablegen</div>
+      <div class="drop-sub" data-i18n="dropSub">oder direkt aus der Kamera hochladen</div>
+      <button class="upload-btn" id="pickBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+          <circle cx="12" cy="13" r="3.5"/>
+        </svg>
+        <span data-i18n="pickBtn">Fotos auswählen</span>
+      </button>
+      <div class="hint" data-i18n="pickHint">Mehrere Fotos auf einmal möglich</div>
+    </div>
     <input type="file" id="fileInput" accept="image/*" multiple>
 
     <div class="status" id="status">
@@ -291,14 +519,14 @@
     </div>
 
     <!-- Gästebuch -->
-    <div class="msg-wrap">
+    <div class="msg-wrap fade-in">
       <div class="ornament"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
       <div class="eyebrow" data-i18n="guestbookEyebrow">Gästebuch</div>
       <h2 class="gallery-title" data-i18n="guestbookTitle">Hinterlasst uns ein paar Worte</h2>
       <p class="msg-count" id="msgCount">💌 …</p>
       <input type="text" id="msgName" class="msg-name" placeholder="Euer Name (freiwillig)" autocomplete="off">
       <textarea id="msgText" class="msg-text" rows="3" placeholder="Eure Nachricht an uns…"></textarea>
-      <div class="rec-zone" id="recZone">
+      <div class="rec-zone">
         <button class="rec-btn" id="recBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4"/></svg>
           <span id="recLabel" data-i18n="recBtn">Sprachnachricht aufnehmen</span>
@@ -324,7 +552,7 @@
     </div>
 
     <!-- Galerie -->
-    <div class="gallery-wrap" id="galleryWrap">
+    <div class="gallery-wrap fade-in" id="galleryWrap">
       <div class="ornament"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
       <div class="eyebrow" data-i18n="galleryEyebrow">Galerie</div>
       <h2 class="gallery-title" data-i18n="galleryTitle">Unsere gemeinsamen Momente</h2>
@@ -365,6 +593,34 @@
   </div>
 </div>
 
+<!-- ══ BEAMER / SCREEN MODUS ══ -->
+<div id="screenOverlay">
+  <!-- Slideshow View -->
+  <div id="screenSlide">
+    <img id="slideImg" src="" alt="">
+  </div>
+  <!-- Grid View -->
+  <div id="screenGrid"></div>
+  <!-- QR Badge -->
+  <div id="screenQR">
+    <div>📸 Fotos hochladen</div>
+    <div class="qr-url" id="screenUrl"></div>
+  </div>
+  <!-- Neu-Badge -->
+  <div id="screenNewBadge">✨ Neues Foto!</div>
+  <!-- Steuerleiste -->
+  <div id="screenBar">
+    <button class="sc-btn active" id="scSlide" onclick="screenSetMode('slideshow')">▶ Diashow</button>
+    <button class="sc-btn" id="scGrid" onclick="screenSetMode('gallery')">⊞ Galerie</button>
+    <button class="sc-btn" id="scPause" onclick="screenTogglePause()">⏸ Pause</button>
+    <span id="screenCounter"></span>
+    <button class="sc-btn" onclick="screenSetSpeed(5000)">5s</button>
+    <button class="sc-btn" onclick="screenSetSpeed(8000)">8s</button>
+    <button class="sc-btn" onclick="screenSetSpeed(12000)">12s</button>
+    <button class="sc-btn" onclick="exitScreenMode()">✕ Beenden</button>
+  </div>
+</div>
+
 <!-- Admin Modal -->
 <div class="pw-bg" id="apwBg">
   <div class="pw-box">
@@ -390,7 +646,7 @@ const SUPABASE_KEY = "sb_publishable_-NBQeOr46tAHPJyWR-NbmA_Qgcqny4t";
 
 // Event-ID – wird aus der URL gelesen (z.B. /moments/hochzeiten/mueller2024)
 // Oder hier manuell setzen für Tests:
-const EVENT_ID_OVERRIDE = "mueller2024"; // leer lassen wenn URL-basiert
+const EVENT_ID_OVERRIDE = "schuster2026"; // leer lassen wenn URL-basiert
 
 /* ============================================================
    Event-ID aus URL oder Override
@@ -445,7 +701,9 @@ const I18N={
     confirmDel:'Foto wirklich aus der Galerie entfernen?',
     limitReached:n=>`Upload-Limit erreicht (${n} Fotos). Bitte kontaktiere den Veranstalter.`,
     compressing:'Bild wird optimiert…',
-    lockText:'Bitte gebt das Passwort ein, um Fotos zu teilen.'
+    lockText:'Bitte gebt das Passwort ein, um Fotos zu teilen.',
+    dropTitle:'Fotos hier ablegen',
+    dropSub:'oder direkt aus der Kamera hochladen'
   },
   en:{
     eyebrowWedding:'Wedding',eyebrowBirthday:'Birthday',eyebrowJubilaeum:'Anniversary',
@@ -476,7 +734,9 @@ const I18N={
     confirmDel:'Really remove this photo from the gallery?',
     limitReached:n=>`Upload limit reached (${n} photos). Please contact the organiser.`,
     compressing:'Optimising image…',
-    lockText:'Please enter the password to share photos.'
+    lockText:'Please enter the password to share photos.',
+    dropTitle:'Drop photos here',
+    dropSub:'or upload directly from your camera'
   }
 };
 
@@ -499,6 +759,8 @@ function setLang(l){
   if(n)n.placeholder=t('msgNamePh');
   if(m)m.placeholder=t('msgTextPh');
   if(typeof loadMsgCount==='function')loadMsgCount();
+  renderDateRange();
+  enforceEventActive();
 }
 
 /* ============================================================
@@ -515,7 +777,14 @@ let eventConfig = {
   name2: 'Bräutigam',
   datum: '',
   kategorie: 'hochzeiten',
-  paket: 'basic'
+  paket: 'basic',
+  start_datum: null,
+  end_datum: null,
+  admin_password_hash: null,
+  color_primary: '#a874c4',
+  color_background: '#f9f0ff',
+  color_text: '#2d1f3d',
+  decoration: '✦'
 };
 
 const SB_KEY = (SUPABASE_KEY||'').trim();
@@ -539,13 +808,60 @@ async function loadEventConfig(){
     console.warn('Event laden:', e);
   }
   applyEventConfig();
+  renderDateRange();
+  enforceEventActive();
 }
 
 function applyEventConfig(){
   // Farben setzen
-  document.documentElement.style.setProperty('--accent', eventConfig.primary_color||'#a874c4');
-  const deep = eventConfig.primary_color ? shadeColor(eventConfig.primary_color, -20) : '#7a4e9a';
+  const primary = eventConfig.color_primary || eventConfig.primary_color || '#a874c4';
+  const bg      = eventConfig.color_background || '#f9f0ff';
+  const textCol = eventConfig.color_text || '#2d1f3d';
+
+  const deep    = shadeColor(primary, -20);
+  const lav     = shadeColor(primary, 40);   // heller Ton für --lav
+  const rose    = shadeColor(primary, 20);   // mittlerer Ton für --rose
+  const bgCard  = shadeColor(bg, -3);        // leicht dunklere Karte
+  const line    = shadeColor(bg, -15);       // Trennlinien
+  const cream   = shadeColor(bg, 5);         // Hover-BG
+
+  document.documentElement.style.setProperty('--accent',      primary);
   document.documentElement.style.setProperty('--accent-deep', deep);
+  document.documentElement.style.setProperty('--lav',         lav);
+  document.documentElement.style.setProperty('--rose',        rose);
+  document.documentElement.style.setProperty('--bg',          bg);
+  document.documentElement.style.setProperty('--cream',       cream);
+  document.documentElement.style.setProperty('--ink',         textCol);
+  document.documentElement.style.setProperty('--soft-ink',    shadeColor(textCol, 60));
+  document.documentElement.style.setProperty('--line',        line);
+
+  // Splash ausblenden – Farben sind jetzt gesetzt
+  const splash = document.getElementById('colorSplash');
+  if (splash) {
+    splash.style.background = bg; // Splash-BG sofort anpassen
+    setTimeout(() => splash.classList.add('fade'), 100);
+    setTimeout(() => splash.remove(), 600);
+
+  // Lock-Screen einblenden NACH Splash
+  const lockEl = document.getElementById('lock');
+  if (lockEl && !lockEl.classList.contains('hidden')) {
+    setTimeout(() => { lockEl.style.opacity = '1'; }, 150);
+  }
+  }
+
+  // Schatten aus Primärfarbe berechnen
+  const hex = primary.replace('#','');
+  const r = parseInt(hex.substring(0,2),16);
+  const g = parseInt(hex.substring(2,4),16);
+  const b = parseInt(hex.substring(4,6),16);
+  document.documentElement.style.setProperty('--shadow-primary', `rgba(${r},${g},${b},.55)`);
+  document.documentElement.style.setProperty('--shadow-soft',    `rgba(${r},${g},${b},.25)`);
+  document.documentElement.style.setProperty('--shadow-pulse',   `rgba(${r},${g},${b},.5)`);
+
+  // Dekorations-Symbol
+  const deco = eventConfig.decoration || '✦';
+  document.querySelectorAll('.dot').forEach(el => el.textContent = deco);
+  document.querySelectorAll('.sparkle').forEach(el => el.textContent = deco);
 
   // Header-Foto
   const heroImg = document.getElementById('heroImg');
@@ -581,28 +897,68 @@ function applyEventConfig(){
 
   // Upload-Limit prüfen
   checkUploadLimit();
-  // Paket-Features steuern
-  applyPaketFeatures();
-}
-
-function applyPaketFeatures(){
-  const paket = eventConfig.paket || 'premium';
-  const msgWrap = document.querySelector('.msg-wrap');
-  const recZone = document.getElementById('recZone');
-  if(paket === 'live'){
-    if(msgWrap) msgWrap.style.display = 'none';
-  }
-  if(paket === 'live'){
-    if(recZone) recZone.style.display = 'none';
-  }
 }
 
 function shadeColor(hex, percent){
-  const num = parseInt(hex.replace('#',''),16);
-  const r = Math.max(0,Math.min(255,(num>>16)+percent));
-  const g = Math.max(0,Math.min(255,((num>>8)&0x00FF)+percent));
-  const b = Math.max(0,Math.min(255,(num&0x0000FF)+percent));
-  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+  if (!hex || !hex.startsWith('#')) return hex || '#888888';
+  const clean = hex.replace('#','');
+  const full = clean.length === 3
+    ? clean.split('').map(c=>c+c).join('')
+    : clean;
+  const num = parseInt(full, 16);
+  const r = Math.max(0, Math.min(255, (num>>16) + percent));
+  const g = Math.max(0, Math.min(255, ((num>>8)&0x00FF) + percent));
+  const b = Math.max(0, Math.min(255, (num&0x0000FF) + percent));
+  return '#' + ((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
+function formatEventDate(isoStr, lang) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr + 'T12:00:00');
+  return d.toLocaleDateString(lang === 'en' ? 'en-GB' : 'de-DE',
+    { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderDateRange() {
+  const el = document.getElementById('eventDateRange');
+  if (!el) return;
+  const s = eventConfig.start_datum, e = eventConfig.end_datum;
+  if (!s && !e) { el.style.display = 'none'; return; }
+  const l = LANG;
+  const label = l === 'en' ? 'Gallery active: ' : 'Galerie aktiv: ';
+  let txt = label;
+  if (s && e)   txt += formatEventDate(s, l) + ' – ' + formatEventDate(e, l);
+  else if (s)   txt += (l === 'en' ? 'from ' : 'ab ') + formatEventDate(s, l);
+  else          txt += (l === 'en' ? 'until ' : 'bis ') + formatEventDate(e, l);
+  el.textContent = txt;
+  el.style.display = '';
+}
+
+function isEventActive() {
+  const s = eventConfig.start_datum, e = eventConfig.end_datum;
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  if (s) { const sd = new Date(s); if (now < sd) return false; }
+  if (e) { const ed = new Date(e); if (now > ed) return false; }
+  return true;
+}
+
+function enforceEventActive() {
+  const active = isEventActive();
+  const hint = document.getElementById('inactiveHint');
+  const msg  = document.getElementById('inactiveMsg');
+  // Inactive message (bilingual)
+  if (msg) msg.textContent = LANG === 'en'
+    ? 'The gallery is outside the active period. Uploads and messages are currently disabled.'
+    : 'Die Galerie ist außerhalb des aktiven Zeitraums. Uploads und Nachrichten sind derzeit deaktiviert.';
+  if (hint) hint.style.display = active ? 'none' : 'block';
+  // Buttons sperren/freigeben
+  ['pickBtn', 'msgSend', 'recBtn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.disabled = !active;
+    btn.style.opacity = active ? '1' : '0.4';
+    btn.style.cursor  = active ? '' : 'not-allowed';
+  });
 }
 
 function checkUploadLimit(){
@@ -648,6 +1004,7 @@ pwInput.focus();
    ============================================================ */
 function compressImage(file, maxWidth){
   return new Promise((resolve)=>{
+    // Fallback: Datei direkt verwenden wenn Komprimierung fehlschlägt
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = ()=>{
@@ -659,7 +1016,13 @@ function compressImage(file, maxWidth){
       canvas.width=w; canvas.height=h;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img,0,0,w,h);
-      canvas.toBlob(blob=>resolve(blob),'image/jpeg',0.85);
+      canvas.toBlob(blob=>{
+        resolve(blob||file);
+      },'image/jpeg',0.85);
+    };
+    img.onerror = ()=>{
+      URL.revokeObjectURL(url);
+      resolve(file); // Originaldatei als Fallback
     };
     img.src=url;
   });
@@ -669,12 +1032,15 @@ function compressImage(file, maxWidth){
    Upload zu Supabase Storage
    ============================================================ */
 async function uploadToSupabase(blob, path){
+  const contentType = blob.type && blob.type !== 'application/octet-stream' 
+    ? blob.type 
+    : 'image/jpeg';
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/moments/${path}`,{
-    method:'POST',
+    method:'PUT',
     headers:{
       apikey: SB_KEY,
       Authorization: `Bearer ${SB_KEY}`,
-      'Content-Type': 'image/jpeg',
+      'Content-Type': contentType,
       'x-upsert': 'true'
     },
     body: blob
@@ -683,7 +1049,69 @@ async function uploadToSupabase(blob, path){
   return `${SUPABASE_URL}/storage/v1/object/public/moments/${path}`;
 }
 
+// Signierte URL (24h gültig) – Bucket muss auf "private" gestellt sein
+async function getSignedUrl(path) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/moments/${path}`, {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY,
+        Authorization: `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ expiresIn: 86400 }) // 24h
+    });
+    if (!res.ok) throw new Error('sign failed');
+    const { signedURL } = await res.json();
+    return `${SUPABASE_URL}${signedURL}`;
+  } catch(e) {
+    // Fallback: public URL (wenn Bucket noch public ist)
+    return `${SUPABASE_URL}/storage/v1/object/public/moments/${path}`;
+  }
+}
+
+// Mehrere URLs parallel signieren
+async function signUrls(paths) {
+  if (!paths || !paths.length) return {};
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/moments`, {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY,
+        Authorization: `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ paths, expiresIn: 86400 })
+    });
+    if (!res.ok) {
+      console.warn('signUrls HTTP error:', res.status);
+      throw new Error('batch sign failed');
+    }
+    const results = await res.json();
+    console.log('signUrls response sample:', results[0]);
+    const map = {};
+    results.forEach((r, i) => {
+      // Supabase gibt entweder signedURL oder signedUrl zurück
+      const signed = r.signedURL || r.signedUrl || r.signed_url;
+      const key = r.path || paths[i];
+      if (signed) {
+        // signed kann absolut oder relativ sein
+        map[key] = signed.startsWith('http') ? signed : `${SUPABASE_URL}${signed}`;
+      }
+    });
+    console.log('signUrls map keys:', Object.keys(map).length, '/', paths.length);
+    return map;
+  } catch(e) {
+    console.warn('signUrls fallback:', e);
+    // Fallback: public URLs (funktioniert wenn Bucket noch public)
+    const map = {};
+    paths.forEach(p => map[p] = `${SUPABASE_URL}/storage/v1/object/public/moments/${p}`);
+    return map;
+  }
+}
+
 function getPublicUrl(path){
+  // Fallback für Upload-Vorschauen (Bucket noch public)
   return `${SUPABASE_URL}/storage/v1/object/public/moments/${path}`;
 }
 
@@ -738,6 +1166,44 @@ const pickBtn=document.getElementById('pickBtn'),
       doneText=document.getElementById('doneText'),
       againBtn=document.getElementById('againBtn');
 
+// Drag-Drop Zone
+const dropZone = document.getElementById('dropZone');
+if (dropZone) {
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (!consent.checked) {
+      consentBox.classList.add('flash');
+      setTimeout(() => consentBox.classList.remove('flash'), 1000);
+      return;
+    }
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      const input = document.getElementById('fileInput');
+      // Simulate file input change
+      const files = Array.from(dt.files).filter(f => f.type.startsWith('image/'));
+      if (files.length) processFiles(files);
+    }
+  });
+}
+
+// Scroll-Animationen
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      fadeObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
 const consent=document.getElementById('consent'),
       consentBox=document.getElementById('consentBox');
 
@@ -757,8 +1223,7 @@ pickBtn.addEventListener('click',()=>{
 
 againBtn.addEventListener('click',()=>{doneBox.classList.remove('show');thumbs.innerHTML='';fileInput.value='';});
 
-fileInput.addEventListener('change',async()=>{
-  const files=Array.from(fileInput.files);
+async function processFiles(files) {
   if(!files.length)return;
   doneBox.classList.remove('show');
   statusBox.classList.add('show');
@@ -788,14 +1253,15 @@ fileInput.addEventListener('change',async()=>{
       const thumbPath = `${filename}_thumb.jpg`;
       const thumbUrl = await uploadToSupabase(thumbBlob, thumbPath);
 
-      // Vollbild im Hintergrund hochladen (2000px)
-      const fullBlob = await compressImage(file, 2000);
+      // Vollbild im Hintergrund hochladen (2000px) - nicht blockierend
+      compressImage(file, 2000).then(fullBlob => {
       const fullPath = `${filename}_full.jpg`;
       uploadToSupabase(fullBlob, fullPath).catch(e=>console.warn('Full upload:', e));
+      }).catch(e=>console.warn('Full compress:', e));
 
       // Counter erhöhen
       await incrementUploadCount();
-      await savePhotoRecord(thumbUrl, thumbUrl);
+      await savePhotoRecord(thumbPath, thumbUrl);
 
     }catch(err){
       console.error('Upload Fehler:', err);
@@ -814,6 +1280,12 @@ fileInput.addEventListener('change',async()=>{
     doneBox.classList.add('show');
     setTimeout(loadGallery, 1500);
   },500);
+}
+
+fileInput.addEventListener('change',async()=>{
+  const files=Array.from(fileInput.files);
+  if(!files.length)return;
+  processFiles(files);
 });
 
 /* ============================================================
@@ -855,18 +1327,16 @@ async function addLike(photoId){
   if(!sbReady)return;
   likeCounts[photoId]=(likeCounts[photoId]||0)+1;
   try{
-    // Likes erhöhen oder neu anlegen
-    const existing = await fetch(`${SUPABASE_URL}/rest/v1/likes?photo_id=eq.${encodeURIComponent(photoId)}`,{
-      headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}
+    await fetch(`${SUPABASE_URL}/rest/v1/likes`,{
+      method:'POST',
+      headers:{
+        apikey:SB_KEY,
+        Authorization:`Bearer ${SB_KEY}`,
+        'Content-Type':'application/json',
+        Prefer:'resolution=merge-duplicates'
+      },
+      body:JSON.stringify({photo_id:photoId, count:likeCounts[photoId]})
     });
-    const rows = await existing.json();
-    if(rows.length>0){
-      await fetch(`${SUPABASE_URL}/rest/v1/likes?photo_id=eq.${encodeURIComponent(photoId)}`,{
-        method:'PATCH',
-        headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Content-Type':'application/json'},
-        body:JSON.stringify({count: (rows[0].count||0)+1})
-      });
-    }
   }catch(e){console.warn('Like:', e);}
 }
 
@@ -897,11 +1367,19 @@ async function loadGallery(){
 
     // Nur Thumbnails anzeigen
     const thumbFiles = (files||[]).filter(f=>f.name&&f.name.endsWith('_thumb.jpg'));
+    // Pfade sammeln
+    const thumbPaths = thumbFiles.map(f => `${EVENT_ID}/${f.name}`);
+    const fullPaths  = thumbFiles.map(f => `${EVENT_ID}/${f.name.replace('_thumb.jpg','_full.jpg')}`);
+    const allPaths   = [...thumbPaths, ...fullPaths];
+
+    // Batch-signieren (ein Request für alle)
+    const signedMap = await signUrls(allPaths);
+
     const items = thumbFiles
       .map(f=>({
         public_id: `${EVENT_ID}/${f.name}`,
-        url: getPublicUrl(`${EVENT_ID}/${f.name}`),
-        fullUrl: getPublicUrl(`${EVENT_ID}/${f.name.replace('_thumb.jpg','_full.jpg')}`),
+        url: signedMap[`${EVENT_ID}/${f.name}`] || getPublicUrl(`${EVENT_ID}/${f.name}`),
+        fullUrl: signedMap[`${EVENT_ID}/${f.name.replace('_thumb.jpg','_full.jpg')}`] || getPublicUrl(`${EVENT_ID}/${f.name.replace('_thumb.jpg','_full.jpg')}`),
         created_at: f.created_at
       }))
       .filter(it=>!hiddenSet.has(it.public_id))
@@ -1050,10 +1528,11 @@ const msgName=document.getElementById('msgName'),
 async function loadMsgCount(){
   if(!sbReady)return;
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/messages?event_id=eq.${EVENT_ID}&select=id`,{
-      headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Prefer':'count=exact'}
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/messages?event_id=eq.${EVENT_ID}&select=*`,{
+      headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}
     });
-    const count=parseInt(res.headers.get('content-range')?.split('/')[1]||'0');
+    const rows=await res.json();
+    const count=rows.length||0;
     document.getElementById('msgCount').textContent=count>0?t('msgCount',count):t('msgEmpty');
   }catch(e){document.getElementById('msgCount').textContent=t('msgEmpty');}
 }
@@ -1204,14 +1683,30 @@ apwCancel.addEventListener('click',()=>apwBg.classList.remove('show'));
 apwBg.addEventListener('click',e=>{if(e.target===apwBg)apwBg.classList.remove('show');});
 apwInput.addEventListener('keydown',e=>{if(e.key==='Enter')apwOk.click();});
 
-apwOk.addEventListener('click',()=>{
-  const pw=apwInput.value;
-  // Einfache Admin-Prüfung: Passwort + "admin" dahinter
-  if(pw===((eventConfig.password||'moments')+'admin')){
-    document.body.classList.add('admin-on');
-    apwBg.classList.remove('show');
-  } else {
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+apwOk.addEventListener('click', async () => {
+  const pw = apwInput.value.trim();
+  if (!pw) return;
+  apwOk.disabled = true;
+  apwOk.textContent = '…';
+  try {
+    const hash = await sha256(pw);
+    if (eventConfig.admin_password_hash && hash === eventConfig.admin_password_hash) {
+      document.body.classList.add('admin-on');
+      apwBg.classList.remove('show');
+      apwInput.value = '';
+    } else {
+      apwError.classList.add('show');
+    }
+  } catch(e) {
     apwError.classList.add('show');
+  } finally {
+    apwOk.disabled = false;
+    apwOk.textContent = 'Anmelden';
   }
 });
 
@@ -1223,10 +1718,188 @@ lbDel.addEventListener('click',e=>{
 });
 
 /* ============================================================
+   Beamer / Screen-Modus
+   ============================================================ */
+let screenItems = [];
+let screenIndex = 0;
+let screenPaused = false;
+let screenSpeed = 7000;
+let screenTimer = null;
+let screenMode = 'slideshow';
+let screenKnownIds = new Set();
+let screenPollTimer = null;
+let barHideTimer = null;
+
+function initScreenMode() {
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get('screen');
+  if (!mode) return;
+
+  // Passwort-Screen überspringen
+  document.getElementById('lock').classList.add('hidden');
+  document.body.classList.add('screen-mode');
+
+  // URL anzeigen (ohne ?screen=...)
+  const cleanUrl = window.location.href.replace(/[?&]screen=[^&]*/,'').replace(/[?&]$/,'');
+  document.getElementById('screenUrl').textContent = cleanUrl;
+
+  // Modus setzen
+  screenMode = mode === 'gallery' ? 'gallery' : 'slideshow';
+  screenSetMode(screenMode);
+
+  // Fotos laden
+  loadHiddenFromDB().then(async () => {
+    await loadScreenPhotos();
+    if (screenMode === 'slideshow') startSlideshow();
+    else renderScreenGrid();
+  });
+
+  // Polling alle 15s – neue Fotos
+  screenPollTimer = setInterval(async () => {
+    const before = screenItems.length;
+    await loadScreenPhotos();
+    const added = screenItems.length - before;
+    if (added > 0) {
+      showNewBadge();
+      if (screenMode === 'gallery') renderScreenGrid();
+    }
+  }, 15000);
+
+  // Steuerleiste: bei Mausbewegung einblenden
+  document.addEventListener('mousemove', showScreenBar);
+  document.addEventListener('touchstart', showScreenBar);
+}
+
+async function loadScreenPhotos() {
+  if (!sbReady) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/list/moments`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefix: `${EVENT_ID}/`, limit: 300, sortBy: { column: 'created_at', order: 'desc' } })
+    });
+    const files = await res.json();
+    const thumbFiles = (files||[]).filter(f => f.name && f.name.endsWith('_thumb.jpg'));
+
+    // Nur neue Fotos signieren
+    const newPaths = thumbFiles
+      .map(f => `${EVENT_ID}/${f.name}`)
+      .filter(p => !screenKnownIds.has(p) && !hiddenSet.has(p));
+
+    if (newPaths.length > 0) {
+      const fullPaths = newPaths.map(p => p.replace('_thumb.jpg','_full.jpg'));
+      const signed = await signUrls([...newPaths, ...fullPaths]);
+      newPaths.forEach(p => {
+        screenKnownIds.add(p);
+        screenItems.push({
+          public_id: p,
+          url: signed[p] || getPublicUrl(p),
+          fullUrl: signed[p.replace('_thumb.jpg','_full.jpg')] || getPublicUrl(p.replace('_thumb.jpg','_full.jpg'))
+        });
+      });
+    }
+  } catch(e) { console.warn('Screen photos:', e); }
+}
+
+function screenSetMode(mode) {
+  screenMode = mode;
+  document.getElementById('screenSlide').style.display = mode === 'slideshow' ? 'flex' : 'none';
+  const grid = document.getElementById('screenGrid');
+  grid.className = mode === 'gallery' ? 'active' : '';
+  document.getElementById('scSlide').classList.toggle('active', mode === 'slideshow');
+  document.getElementById('scGrid').classList.toggle('active', mode === 'gallery');
+  if (mode === 'slideshow') startSlideshow();
+  else { clearTimeout(screenTimer); renderScreenGrid(); }
+}
+
+function startSlideshow() {
+  if (!screenItems.length) return;
+  showSlide(screenIndex);
+  clearTimeout(screenTimer);
+  if (!screenPaused) screenTimer = setTimeout(nextSlide, screenSpeed);
+}
+
+function showSlide(idx) {
+  const item = screenItems[idx];
+  if (!item) return;
+  const img = document.getElementById('slideImg');
+  img.classList.remove('visible');
+  setTimeout(() => {
+    img.src = item.fullUrl || item.url;
+    img.onload = () => img.classList.add('visible');
+  }, 400);
+  document.getElementById('screenCounter').textContent = `${idx+1} / ${screenItems.length}`;
+}
+
+function nextSlide() {
+  if (!screenItems.length) return;
+  screenIndex = (screenIndex + 1) % screenItems.length;
+  showSlide(screenIndex);
+  if (!screenPaused) screenTimer = setTimeout(nextSlide, screenSpeed);
+}
+
+function screenTogglePause() {
+  screenPaused = !screenPaused;
+  const btn = document.getElementById('scPause');
+  btn.textContent = screenPaused ? '▶ Weiter' : '⏸ Pause';
+  if (!screenPaused && screenMode === 'slideshow') screenTimer = setTimeout(nextSlide, screenSpeed);
+  else clearTimeout(screenTimer);
+}
+
+function screenSetSpeed(ms) {
+  screenSpeed = ms;
+  clearTimeout(screenTimer);
+  if (!screenPaused && screenMode === 'slideshow') screenTimer = setTimeout(nextSlide, screenSpeed);
+}
+
+function renderScreenGrid() {
+  const grid = document.getElementById('screenGrid');
+  grid.innerHTML = '';
+  screenItems.slice(0, 50).forEach(item => {
+    const img = document.createElement('img');
+    img.src = item.url;
+    img.alt = '';
+    img.onload = () => img.classList.add('visible');
+    grid.appendChild(img);
+  });
+}
+
+function showNewBadge() {
+  const badge = document.getElementById('screenNewBadge');
+  badge.classList.add('show');
+  setTimeout(() => badge.classList.remove('show'), 3000);
+}
+
+function showScreenBar() {
+  const bar = document.getElementById('screenBar');
+  bar.classList.remove('hidden');
+  clearTimeout(barHideTimer);
+  barHideTimer = setTimeout(() => bar.classList.add('hidden'), 3000);
+}
+
+function exitScreenMode() {
+  document.body.classList.remove('screen-mode');
+  clearTimeout(screenTimer);
+  clearInterval(screenPollTimer);
+  const url = new URL(window.location);
+  url.searchParams.delete('screen');
+  window.history.replaceState({}, '', url);
+}
+
+/* ============================================================
    Init
    ============================================================ */
 setLang('de');
 loadEventConfig();
+initScreenMode();
+
+// Rechtsklick + Drag auf Bilder deaktivieren
+document.addEventListener('contextmenu', e => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
+document.addEventListener('dragstart', e => {
+  if (e.target.tagName === 'IMG') e.preventDefault();
+});
 
 // Likes alle 20 Sek. auffrischen
 setInterval(async()=>{
@@ -1240,5 +1913,14 @@ setInterval(async()=>{
   if(lightbox.classList.contains('show'))showCurrent();
 },20000);
 </script>
+<!-- ============================================================
+   SQL – einmalig in Supabase (moments-commercial) ausführen:
+
+   ALTER TABLE events ADD COLUMN IF NOT EXISTS start_datum date;
+   ALTER TABLE events ADD COLUMN IF NOT EXISTS end_datum   date;
+
+   UPDATE events SET start_datum = '2026-06-12', end_datum = '2026-07-12' WHERE event_id = 'mueller2024';
+   UPDATE events SET start_datum = '2026-06-12', end_datum = '2026-07-12' WHERE event_id = 'schmidt2024';
+============================================================ -->
 </body>
 </html>
