@@ -27,7 +27,7 @@
     position: fixed;
     inset: 0;
     background: var(--bg);
-    z-index: 9999;
+    z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -782,13 +782,13 @@ function applyEventConfig(){
   const splash = document.getElementById('colorSplash');
   if (splash) {
     splash.style.background = bg; // Splash-BG sofort anpassen
-    setTimeout(() => splash.classList.add('fade'), 50);
-    setTimeout(() => splash.remove(), 500);
+    setTimeout(() => splash.classList.add('fade'), 100);
+    setTimeout(() => splash.remove(), 600);
 
-  // Lock-Screen einblenden (Farben sind jetzt gesetzt)
+  // Lock-Screen einblenden NACH Splash
   const lockEl = document.getElementById('lock');
   if (lockEl && !lockEl.classList.contains('hidden')) {
-    setTimeout(() => lockEl.style.opacity = '1', 80);
+    setTimeout(() => { lockEl.style.opacity = '1'; }, 150);
   }
   }
 
