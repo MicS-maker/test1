@@ -54,9 +54,9 @@
   html,body{min-height:100%;background:var(--bg);font-family:'Jost',sans-serif;color:var(--ink)}
 
   /* === Passwort-Lock === */
-  .lock{position:fixed;inset:0;background:linear-gradient(135deg,#f9f0ff,#fff0f7);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px}
+  .lock{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px;opacity:0;transition:opacity .3s}
   .lock.hidden{display:none}
-  .lock-card{background:#fff;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px -20px rgba(168,116,196,.35)}
+  .lock-card{background:#fff;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px -20px rgba(0,0,0,.15)}
   .lock-card .ornament{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:20px}
   .lock-card .ornament .line{flex:1;height:1px;background:var(--line);max-width:60px}
   .lock-card .ornament .dot{color:var(--lav);font-size:14px}
@@ -65,7 +65,7 @@
   .lock-card p{font-size:14px;color:var(--soft-ink);line-height:1.6;margin-bottom:20px}
   .lock-card input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:14px;font-family:inherit;font-size:16px;outline:none;text-align:center;letter-spacing:.15em;margin-bottom:14px;transition:border-color .2s}
   .lock-card input:focus{border-color:var(--accent)}
-  .lock-card button{width:100%;padding:14px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;border-radius:50px;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:.08em;cursor:pointer}
+  .lock-card button{width:100%;padding:14px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--accent));color:#fff;border:none;border-radius:50px;font-family:inherit;font-size:15px;font-weight:500;letter-spacing:.08em;cursor:pointer}
   .lock-err{color:#c0607f;font-size:13px;margin-top:10px;min-height:18px}
 
   /* === Bokeh === */
@@ -784,6 +784,12 @@ function applyEventConfig(){
     splash.style.background = bg; // Splash-BG sofort anpassen
     setTimeout(() => splash.classList.add('fade'), 50);
     setTimeout(() => splash.remove(), 500);
+
+  // Lock-Screen einblenden (Farben sind jetzt gesetzt)
+  const lockEl = document.getElementById('lock');
+  if (lockEl && !lockEl.classList.contains('hidden')) {
+    setTimeout(() => lockEl.style.opacity = '1', 80);
+  }
   }
 
   // Dekorations-Symbol
