@@ -20,6 +20,9 @@
     --line:        #dddddd;
     --bg:          #f8f8f8;
     /* Neutrale Defaults – werden sofort per JS mit Event-Farben überschrieben */
+    --shadow-primary: rgba(100,100,100,.4);
+    --shadow-soft:    rgba(100,100,100,.2);
+    --shadow-pulse:   rgba(100,100,100,.4);
   }
 
   /* Lade-Splash – verhindert Farb-Flackern */
@@ -76,35 +79,69 @@
   .b4{width:180px;height:180px;background:var(--rose);bottom:5%;left:10%}
 
   /* === Card === */
-  .card{position:relative;max-width:480px;margin:0 auto;padding:0 0 60px;z-index:1}
+  .card{position:relative;max-width:520px;margin:0 auto;padding:0 0 80px;z-index:1}
 
   /* === Hero === */
-  .hero{position:relative;width:100%;text-align:center;padding:36px 0 20px}
-  .hero-img{width:180px;height:180px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 8px 32px -8px rgba(168,116,196,.5);cursor:pointer}
+  .hero{position:relative;width:100%;text-align:center;padding:48px 0 28px}
+  .hero-img{width:220px;height:220px;border-radius:50%;object-fit:cover;border:5px solid #fff;box-shadow:0 12px 48px -12px var(--shadow-primary);cursor:pointer;transition:transform .3s}
+  .hero-img:hover{transform:scale(1.03)}
   .sparkle{position:absolute;color:var(--lav);font-size:16px;animation:twinkle 3s ease-in-out infinite}
   .s1{top:30px;left:15%}.s2{top:60px;right:12%}.s3{bottom:20px;left:25%}
   @keyframes twinkle{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
 
   /* === Body === */
-  .body{padding:0 32px}
-  .ornament{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:18px}
+  .body{padding:0 36px}
+  .ornament{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:24px}
   .ornament .line{flex:1;height:1px;background:var(--line)}
   .ornament .dot{color:var(--lav);font-size:14px}
   .ornament .r{transform:scaleX(-1)}
-  .eyebrow{font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-deep);text-align:center;margin-bottom:8px}
-  h1{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:400;text-align:center;color:var(--ink);line-height:1.1;margin-bottom:8px}
+  .eyebrow{font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent-deep);text-align:center;margin-bottom:10px}
+  h1{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:400;text-align:center;color:var(--ink);line-height:1.05;margin-bottom:12px}
   .amp{color:var(--accent);font-style:italic}
-  .date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--soft-ink);margin-bottom:20px;text-align:center}
-  .quote{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--soft-ink);line-height:1.5;max-width:330px;margin:0 auto 28px;text-align:center}
-  .divider{width:60px;height:1px;background:var(--line);margin:0 auto 26px}
-  .instructions{font-size:14px;color:var(--soft-ink);line-height:1.6;margin-bottom:26px;text-align:center}
+  .date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:var(--soft-ink);margin-bottom:10px;text-align:center}
+  .quote{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:var(--soft-ink);line-height:1.6;max-width:340px;margin:0 auto 36px;text-align:center}
+  .divider{width:80px;height:1px;background:var(--line);margin:0 auto 36px}
+  .instructions{font-size:15px;color:var(--soft-ink);line-height:1.7;margin-bottom:36px;text-align:center}
 
   /* === Upload === */
-  .upload-btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.06em;padding:16px 32px;border-radius:50px;box-shadow:0 14px 28px -10px rgba(168,116,196,.7);transition:transform .2s,box-shadow .2s,filter .2s;display:flex;margin:0 auto 10px;-webkit-tap-highlight-color:transparent}
-  .upload-btn:hover{transform:translateY(-2px);box-shadow:0 20px 36px -10px rgba(168,116,196,.8);filter:brightness(1.05)}
+  .upload-btn{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:16px;letter-spacing:.06em;padding:18px 40px;border-radius:50px;box-shadow:0 14px 28px -10px var(--shadow-primary);transition:transform .2s,box-shadow .2s,filter .2s;display:flex;margin:0 auto 14px;-webkit-tap-highlight-color:transparent}
+  .upload-btn:hover{transform:translateY(-2px);box-shadow:0 20px 36px -10px var(--shadow-primary);filter:brightness(1.05)}
   .upload-btn:active{transform:translateY(0)}
   .upload-btn svg{width:20px;height:20px;flex:none}
   .hint{font-size:13px;color:var(--soft-ink);text-align:center;margin-bottom:28px}
+
+  /* === Drag-Drop Zone === */
+  .drop-zone{
+    border:2px dashed var(--line);
+    border-radius:20px;
+    padding:36px 24px;
+    text-align:center;
+    margin-bottom:28px;
+    transition:border-color .2s, background .2s;
+    cursor:pointer;
+    position:relative;
+  }
+  .drop-zone.drag-over{
+    border-color:var(--accent);
+    background:var(--cream);
+  }
+  .drop-zone .drop-icon{
+    font-size:36px;
+    margin-bottom:12px;
+    display:block;
+    opacity:.6;
+  }
+  .drop-zone .drop-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:20px;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .drop-zone .drop-sub{
+    font-size:13px;
+    color:var(--soft-ink);
+    margin-bottom:18px;
+  }
   input[type=file]{display:none}
 
   /* Limit-Warnung */
@@ -117,12 +154,12 @@
   .bar{height:6px;background:#efe3f3;border-radius:50px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--lav),var(--rose));border-radius:50px;transition:width .3s}
   .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
-  .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 4px 12px -4px rgba(168,116,196,.4)}
+  .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 4px 12px -4px var(--shadow-soft)}
 
   /* === Done === */
   .done{display:none;text-align:center;padding:28px 0}
   .done.show{display:block}
-  .check{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--lav),var(--accent-deep));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 20px -6px rgba(168,116,196,.6)}
+  .check{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--lav),var(--accent-deep));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 20px -6px var(--shadow-primary)}
   .check svg{width:28px;height:28px;color:#fff}
   .done h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);margin-bottom:8px}
   .done p{font-size:14px;color:var(--soft-ink);margin-bottom:16px}
@@ -130,8 +167,8 @@
   .again:hover{background:var(--cream)}
 
   /* === Galerie === */
-  .gallery-wrap{margin-top:40px}
-  .gallery-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;color:var(--ink);text-align:center;margin-bottom:16px}
+  .gallery-wrap{margin-top:56px}
+  .gallery-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;color:var(--ink);text-align:center;margin-bottom:20px}
   .gallery-hint{font-size:13px;color:var(--soft-ink);text-align:center;margin-bottom:16px}
   .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .tile{position:relative;aspect-ratio:1;overflow:hidden;border-radius:12px;cursor:pointer}
@@ -147,7 +184,7 @@
   .podium-row{display:flex;align-items:flex-end;justify-content:center;gap:12px}
   .podium-item{flex:1;max-width:110px;text-align:center;cursor:pointer}
   .podium-item .rank{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--accent-deep)}
-  .podium-item img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 6px 16px -6px rgba(150,110,170,.5);transition:transform .2s}
+  .podium-item img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid #fff;box-shadow:0 6px 16px -6px var(--shadow-soft);transition:transform .2s}
   .podium-item:hover img{transform:scale(1.05)}
   .podium-item.p1{order:2;transform:translateY(-8px)}
   .podium-item.p2{order:1}
@@ -170,7 +207,7 @@
   .lb-like svg{width:20px;height:20px;fill:var(--rose)}
 
   /* === Gästebuch === */
-  .msg-wrap{margin-top:38px;padding-top:30px;border-top:1px solid var(--line)}
+  .msg-wrap{margin-top:56px;padding-top:40px;border-top:1px solid var(--line)}
   .msg-count{font-size:14px;color:var(--accent-deep);margin-bottom:20px;font-weight:500;letter-spacing:.02em;text-align:center}
   .msg-name,.msg-text{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;font-family:'Jost',sans-serif;font-size:15px;color:var(--ink);padding:13px 16px;outline:none;transition:border-color .2s;margin-bottom:12px;resize:vertical}
   .msg-name:focus,.msg-text:focus{border-color:var(--accent)}
@@ -179,10 +216,10 @@
   .rec-btn:hover{background:var(--accent);color:#fff}
   .rec-btn.recording{background:var(--rose);border-color:var(--rose);color:#fff;animation:pulse 1.3s ease-in-out infinite}
   .rec-btn svg{width:18px;height:18px;flex:none}
-  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,169,192,.6)}50%{box-shadow:0 0 0 10px rgba(232,169,192,0)}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--shadow-pulse)}50%{box-shadow:0 0 0 10px transparent}}
   .rec-status{font-size:13px;color:var(--soft-ink);margin-top:10px;min-height:16px}
   .rec-preview{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:14px}
-  .player{display:flex;align-items:center;gap:14px;width:100%;background:#fff;border:1px solid var(--line);border-radius:50px;padding:10px 16px 10px 10px;box-shadow:0 4px 14px -6px rgba(150,110,170,.3)}
+  .player{display:flex;align-items:center;gap:14px;width:100%;background:#fff;border:1px solid var(--line);border-radius:50px;padding:10px 16px 10px 10px;box-shadow:0 4px 14px -6px var(--shadow-soft)}
   .player-btn{flex:none;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));display:flex;align-items:center;justify-content:center;transition:transform .15s;-webkit-tap-highlight-color:transparent}
   .player-btn:active{transform:scale(.92)}
   .player-btn svg{width:22px;height:22px;fill:#fff}
@@ -192,7 +229,7 @@
   .player-time{display:flex;justify-content:space-between;font-size:11px;color:var(--soft-ink);margin-top:5px;letter-spacing:.03em}
   .rec-redo{background:none;border:1px solid var(--line);color:var(--soft-ink);padding:10px 22px;border-radius:50px;font-family:'Jost',sans-serif;font-size:14px;cursor:pointer;transition:background .2s}
   .rec-redo:hover{background:var(--cream)}
-  .msg-send{width:100%;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.06em;padding:15px;border-radius:50px;box-shadow:0 14px 28px -10px rgba(168,116,196,.7);transition:transform .2s,filter .2s,opacity .2s}
+  .msg-send{width:100%;background:linear-gradient(135deg,var(--lav),var(--accent-deep) 55%,var(--rose));color:#fff;border:none;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.06em;padding:15px;border-radius:50px;box-shadow:0 14px 28px -10px var(--shadow-primary);transition:transform .2s,filter .2s,opacity .2s}
   .msg-send:hover{transform:translateY(-2px);filter:brightness(1.05)}
   .msg-send:disabled{opacity:.55;cursor:not-allowed;transform:none}
   .msg-feedback{font-size:14px;margin-top:14px;min-height:20px;color:var(--accent-deep);text-align:center}
@@ -245,7 +282,18 @@
   .pw-error{color:#b5532f;font-size:13px;margin-top:-6px;margin-bottom:10px;display:none}
   .pw-error.show{display:block}
 
-  .footer{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--soft-ink);margin-top:40px;padding:20px 0}
+  .footer{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--soft-ink);margin-top:60px;padding:20px 0}
+
+  /* === Scroll-Animationen === */
+  .fade-in{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .fade-in.visible{
+    opacity:1;
+    transform:translateY(0);
+  }
   /* === Foto-Schutz === */
   img { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
   .gallery img, .lightbox img, .podium-item img {
@@ -425,8 +473,8 @@
   </div>
 
   <div class="body">
-    <div class="ornament"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
-    <div class="eyebrow" id="eventEyebrow" data-i18n="eyebrowWedding">Hochzeit</div>
+    <div class="ornament fade-in"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
+    <div class="eyebrow fade-in" id="eventEyebrow" data-i18n="eyebrowWedding">Hochzeit</div>
     <h1 id="eventNames">Moments</h1>
     <div class="date" id="eventDate"></div>
     <div id="eventDateRange" style="display:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--soft-ink);margin-bottom:8px;text-align:center;letter-spacing:.02em;"></div>
@@ -442,14 +490,19 @@
       <span data-i18n="consent">Ich habe die Rechte an den Fotos und bin einverstanden, dass sie allen Gästen dieser Feier in der Galerie gezeigt werden.</span>
     </label>
 
-    <button class="upload-btn" id="pickBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
-        <circle cx="12" cy="13" r="3.5"/>
-      </svg>
-      <span data-i18n="pickBtn">Fotos auswählen</span>
-    </button>
-    <div class="hint" data-i18n="pickHint">Mehrere Fotos auf einmal möglich</div>
+    <div class="drop-zone" id="dropZone">
+      <span class="drop-icon">📸</span>
+      <div class="drop-title" data-i18n="dropTitle">Fotos hier ablegen</div>
+      <div class="drop-sub" data-i18n="dropSub">oder direkt aus der Kamera hochladen</div>
+      <button class="upload-btn" id="pickBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+          <circle cx="12" cy="13" r="3.5"/>
+        </svg>
+        <span data-i18n="pickBtn">Fotos auswählen</span>
+      </button>
+      <div class="hint" data-i18n="pickHint">Mehrere Fotos auf einmal möglich</div>
+    </div>
     <input type="file" id="fileInput" accept="image/*" multiple>
 
     <div class="status" id="status">
@@ -466,7 +519,7 @@
     </div>
 
     <!-- Gästebuch -->
-    <div class="msg-wrap">
+    <div class="msg-wrap fade-in">
       <div class="ornament"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
       <div class="eyebrow" data-i18n="guestbookEyebrow">Gästebuch</div>
       <h2 class="gallery-title" data-i18n="guestbookTitle">Hinterlasst uns ein paar Worte</h2>
@@ -499,7 +552,7 @@
     </div>
 
     <!-- Galerie -->
-    <div class="gallery-wrap" id="galleryWrap">
+    <div class="gallery-wrap fade-in" id="galleryWrap">
       <div class="ornament"><span class="line"></span><span class="dot">✦</span><span class="line r"></span></div>
       <div class="eyebrow" data-i18n="galleryEyebrow">Galerie</div>
       <h2 class="gallery-title" data-i18n="galleryTitle">Unsere gemeinsamen Momente</h2>
@@ -593,7 +646,7 @@ const SUPABASE_KEY = "sb_publishable_-NBQeOr46tAHPJyWR-NbmA_Qgcqny4t";
 
 // Event-ID – wird aus der URL gelesen (z.B. /moments/hochzeiten/mueller2024)
 // Oder hier manuell setzen für Tests:
-const EVENT_ID_OVERRIDE = "schuster2026"; // leer lassen wenn URL-basiert
+const EVENT_ID_OVERRIDE = "mueller2024"; // leer lassen wenn URL-basiert
 
 /* ============================================================
    Event-ID aus URL oder Override
@@ -648,7 +701,9 @@ const I18N={
     confirmDel:'Foto wirklich aus der Galerie entfernen?',
     limitReached:n=>`Upload-Limit erreicht (${n} Fotos). Bitte kontaktiere den Veranstalter.`,
     compressing:'Bild wird optimiert…',
-    lockText:'Bitte gebt das Passwort ein, um Fotos zu teilen.'
+    lockText:'Bitte gebt das Passwort ein, um Fotos zu teilen.',
+    dropTitle:'Fotos hier ablegen',
+    dropSub:'oder direkt aus der Kamera hochladen'
   },
   en:{
     eyebrowWedding:'Wedding',eyebrowBirthday:'Birthday',eyebrowJubilaeum:'Anniversary',
@@ -679,7 +734,9 @@ const I18N={
     confirmDel:'Really remove this photo from the gallery?',
     limitReached:n=>`Upload limit reached (${n} photos). Please contact the organiser.`,
     compressing:'Optimising image…',
-    lockText:'Please enter the password to share photos.'
+    lockText:'Please enter the password to share photos.',
+    dropTitle:'Drop photos here',
+    dropSub:'or upload directly from your camera'
   }
 };
 
@@ -791,6 +848,15 @@ function applyEventConfig(){
     setTimeout(() => { lockEl.style.opacity = '1'; }, 150);
   }
   }
+
+  // Schatten aus Primärfarbe berechnen
+  const hex = primary.replace('#','');
+  const r = parseInt(hex.substring(0,2),16);
+  const g = parseInt(hex.substring(2,4),16);
+  const b = parseInt(hex.substring(4,6),16);
+  document.documentElement.style.setProperty('--shadow-primary', `rgba(${r},${g},${b},.55)`);
+  document.documentElement.style.setProperty('--shadow-soft',    `rgba(${r},${g},${b},.25)`);
+  document.documentElement.style.setProperty('--shadow-pulse',   `rgba(${r},${g},${b},.5)`);
 
   // Dekorations-Symbol
   const deco = eventConfig.decoration || '✦';
@@ -1087,6 +1153,44 @@ const pickBtn=document.getElementById('pickBtn'),
       doneText=document.getElementById('doneText'),
       againBtn=document.getElementById('againBtn');
 
+// Drag-Drop Zone
+const dropZone = document.getElementById('dropZone');
+if (dropZone) {
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (!consent.checked) {
+      consentBox.classList.add('flash');
+      setTimeout(() => consentBox.classList.remove('flash'), 1000);
+      return;
+    }
+    const dt = e.dataTransfer;
+    if (dt.files.length) {
+      const input = document.getElementById('fileInput');
+      // Simulate file input change
+      const files = Array.from(dt.files).filter(f => f.type.startsWith('image/'));
+      if (files.length) processFiles(files);
+    }
+  });
+}
+
+// Scroll-Animationen
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      fadeObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
 const consent=document.getElementById('consent'),
       consentBox=document.getElementById('consentBox');
 
@@ -1106,8 +1210,7 @@ pickBtn.addEventListener('click',()=>{
 
 againBtn.addEventListener('click',()=>{doneBox.classList.remove('show');thumbs.innerHTML='';fileInput.value='';});
 
-fileInput.addEventListener('change',async()=>{
-  const files=Array.from(fileInput.files);
+async function processFiles(files) {
   if(!files.length)return;
   doneBox.classList.remove('show');
   statusBox.classList.add('show');
@@ -1164,6 +1267,12 @@ fileInput.addEventListener('change',async()=>{
     doneBox.classList.add('show');
     setTimeout(loadGallery, 1500);
   },500);
+}
+
+fileInput.addEventListener('change',async()=>{
+  const files=Array.from(fileInput.files);
+  if(!files.length)return;
+  processFiles(files);
 });
 
 /* ============================================================
