@@ -10,15 +10,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --accent: #a874c4;
+    --accent:      #a874c4;
     --accent-deep: #7a4e9a;
-    --lav: #c9a8e0;
-    --rose: #e8a9c0;
-    --cream: #fdf6ff;
-    --ink: #2d1f3d;
-    --soft-ink: #7a6a8a;
-    --line: #e8d8f0;
-    --bg: #f9f0ff;
+    --lav:         #c9a8e0;
+    --rose:        #e8a9c0;
+    --cream:       #fdf6ff;
+    --ink:         #2d1f3d;
+    --soft-ink:    #7a6a8a;
+    --line:        #e8d8f0;
+    --bg:          #f9f0ff;
+    /* Alle Werte werden per JS überschrieben sobald Supabase antwortet */
+  }
+
+  /* Lade-Splash – verhindert Farb-Flackern */
+  #colorSplash {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .4s ease;
+  }
+  #colorSplash.fade {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #colorSplash .splash-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin: 0 5px;
+    animation: splashPulse 1s ease-in-out infinite;
+  }
+  #colorSplash .splash-dot:nth-child(2) { animation-delay: .15s; }
+  #colorSplash .splash-dot:nth-child(3) { animation-delay: .3s; }
+  @keyframes splashPulse {
+    0%,100% { transform: scale(.6); opacity: .4; }
+    50%      { transform: scale(1);  opacity: 1;  }
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{min-height:100%;background:var(--bg);font-family:'Jost',sans-serif;color:var(--ink)}
@@ -42,8 +72,8 @@
   .bokeh{position:fixed;border-radius:50%;filter:blur(60px);opacity:.25;pointer-events:none;z-index:0}
   .b1{width:320px;height:320px;background:var(--lav);top:-80px;left:-80px}
   .b2{width:260px;height:260px;background:var(--rose);bottom:10%;right:-60px}
-  .b3{width:200px;height:200px;background:#f0d0ff;top:40%;left:20%}
-  .b4{width:180px;height:180px;background:#ffd0e8;bottom:5%;left:10%}
+  .b3{width:200px;height:200px;background:var(--lav);top:40%;left:20%}
+  .b4{width:180px;height:180px;background:var(--rose);bottom:5%;left:10%}
 
   /* === Card === */
   .card{position:relative;max-width:480px;margin:0 auto;padding:0 0 60px;z-index:1}
@@ -367,6 +397,13 @@
     <button id="pwBtn">Weiter</button>
     <div class="lock-err" id="pwErr"></div>
   </div>
+</div>
+
+<!-- Farb-Splash (verhindert Flackern bis Supabase antwortet) -->
+<div id="colorSplash">
+  <div class="splash-dot"></div>
+  <div class="splash-dot"></div>
+  <div class="splash-dot"></div>
 </div>
 
 <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div><div class="bokeh b4"></div>
@@ -740,6 +777,14 @@ function applyEventConfig(){
   document.documentElement.style.setProperty('--ink',         textCol);
   document.documentElement.style.setProperty('--soft-ink',    shadeColor(textCol, 60));
   document.documentElement.style.setProperty('--line',        line);
+
+  // Splash ausblenden – Farben sind jetzt gesetzt
+  const splash = document.getElementById('colorSplash');
+  if (splash) {
+    splash.style.background = bg; // Splash-BG sofort anpassen
+    setTimeout(() => splash.classList.add('fade'), 50);
+    setTimeout(() => splash.remove(), 500);
+  }
 
   // Dekorations-Symbol
   const deco = eventConfig.decoration || '✦';
