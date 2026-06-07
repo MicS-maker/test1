@@ -789,7 +789,7 @@
         <button class="pb-chip active" data-frame="none" data-i18n="pbFrameNone">Kein</button>
         <button class="pb-chip" data-frame="leaf" data-i18n="pbFrameLeaf">Blätter</button>
         <button class="pb-chip" data-frame="goldVintage" data-i18n="pbFrameGoldV">Gold antik</button>
-        <button class="pb-chip" data-frame="scallop" data-i18n="pbFrameScallop">Geschwungen</button>
+        <button class="pb-chip" data-frame="white" data-i18n="pbFrameWhite">Weiß</button>
         <button class="pb-chip" data-frame="film" data-i18n="pbFrameFilm">Film</button>
       </div>
     </div>
@@ -971,7 +971,7 @@ const I18N={
     photoboxBtn:'Photobox starten',
     photoboxTitle:'Foto-Box',photoboxSub:'Selfie mit Filter, Rahmen & Text',
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'S/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Kühl',
-    pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameLeaf:'Blätter',pbFrameGoldV:'Gold antik',pbFrameScallop:'Geschwungen',pbFrameFilm:'Film',
+    pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameLeaf:'Blätter',pbFrameGoldV:'Gold antik',pbFrameWhite:'Weiß',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Foto aufnehmen',pbRetry:'Neu',pbPost:'In Galerie posten',
     pbTextColor:'Schriftfarbe',pbColorWhite:'Weiß',pbColorBlack:'Schwarz',
     pbTextPos:'Textposition',pbPosTop:'Oben',pbPosMiddle:'Mitte',pbPosBottom:'Unten',pbPosBL:'Unten links',pbPosBR:'Unten rechts',
@@ -1014,7 +1014,7 @@ const I18N={
     photoboxBtn:'Start Photobox',
     photoboxTitle:'Photo Booth',photoboxSub:'Selfie with filter, frame & text',
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'B/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Cool',
-    pbFrame:'Frame',pbFrameNone:'None',pbFrameLeaf:'Botanical',pbFrameGoldV:'Vintage gold',pbFrameScallop:'Scalloped',pbFrameFilm:'Film',
+    pbFrame:'Frame',pbFrameNone:'None',pbFrameLeaf:'Botanical',pbFrameGoldV:'Vintage gold',pbFrameWhite:'White',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Take photo',pbRetry:'Retry',pbPost:'Post to gallery',
     pbTextColor:'Text color',pbColorWhite:'White',pbColorBlack:'Black',
     pbTextPos:'Text position',pbPosTop:'Top',pbPosMiddle:'Middle',pbPosBottom:'Bottom',pbPosBL:'Bottom left',pbPosBR:'Bottom right',
@@ -1291,9 +1291,10 @@ pwInput.addEventListener('keydown',e=>{if(e.key==='Enter')checkPw();});
 pwInput.focus();
 
 /* ============================================================
-   Browser-Komprimierung (400px Vorschau + 2000px Qualität)
+   Browser-Komprimierung (400px Vorschau + 4000px Qualität)
    ============================================================ */
-function compressImage(file, maxWidth){
+function compressImage(file, maxWidth, quality){
+  const q = quality || 0.85;
   return new Promise((resolve)=>{
     // Fallback: Datei direkt verwenden wenn Komprimierung fehlschlägt
     const img = new Image();
@@ -1306,10 +1307,11 @@ function compressImage(file, maxWidth){
       const canvas = document.createElement('canvas');
       canvas.width=w; canvas.height=h;
       const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img,0,0,w,h);
       canvas.toBlob(blob=>{
         resolve(blob||file);
-      },'image/jpeg',0.85);
+      },'image/jpeg',q);
     };
     img.onerror = ()=>{
       URL.revokeObjectURL(url);
@@ -1553,7 +1555,7 @@ async function processFiles(files) {
       const thumbUrl = await uploadToSupabase(thumbBlob, thumbPath);
 
       // Vollbild im Hintergrund hochladen (2000px) - nicht blockierend
-      compressImage(file, 2000).then(fullBlob => {
+      compressImage(file, 4000, 0.92).then(fullBlob => {
       const fullPath = `${filename}_full.jpg`;
       uploadToSupabase(fullBlob, fullPath).catch(e=>console.warn('Full upload:', e));
       }).catch(e=>console.warn('Full compress:', e));
@@ -2222,7 +2224,7 @@ function pbApplyFrame() {
     none:        'none',
     leaf:        'inset 0 0 0 6px rgba(122,158,110,.85)',
     goldVintage: 'inset 0 0 0 10px rgba(201,161,74,.9)',
-    scallop:     'inset 0 0 0 12px rgba(255,255,255,.95)',
+    white:       'inset 0 0 0 14px rgba(255,255,255,.95)',
     film:        'inset 0 0 0 22px #111'
   };
   fo.style.boxShadow = frames[pbFrame] || 'none';
@@ -2248,8 +2250,11 @@ function pbUpdateSticker() {
   const ov = document.getElementById('pbStickerOverlay');
   ov.textContent = pbSticker || '';
   const stageH = document.getElementById('pbStage').getBoundingClientRect().height || 400;
-  const livePx = Math.max(20, Math.round(pbStickerSize / 1440 * stageH));
+  const livePx = Math.max(20, Math.round(pbStickerSize * (stageH/1440) * 1.8));
   ov.style.fontSize = livePx + 'px';
+  // Abstand wie im finalen Bild
+  const pad = Math.round(livePx * 0.25 + stageH * 0.02);
+  ov.style.padding = pad + 'px';
 }
 
 async function pbStartCamera() {
@@ -2430,14 +2435,15 @@ function pbRender() {
 function pbDrawSticker(ctx) {
   if (!pbSticker) return;
   const W = pbCanvas.width, H = pbCanvas.height;
-  // Emoji-Größe relativ zur Bildhöhe (Slider 40–160 → Anteil der Höhe)
-  const sizePx = Math.round(pbStickerSize / 1440 * H * 1.0);
-  const margin = Math.round(H * 0.03);
+  // Größe skaliert mit Bildhöhe (Slider 40–160), kräftiger Faktor
+  const sizePx = Math.round(pbStickerSize * (H/1440) * 1.8);
   ctx.save();
   ctx.font = sizePx + 'px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-  ctx.fillText(pbSticker, W - margin, margin);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  // Abstand wächst mit der Größe → Emoji bleibt immer komplett im Bild (oben rechts)
+  const inset = Math.round(sizePx * 0.6 + W * 0.05);
+  ctx.fillText(pbSticker, W - inset, inset);
   ctx.restore();
 }
 
@@ -2458,22 +2464,21 @@ function pbDrawFrame(ctx) {
     return;
   }
 
-  if (pbFrame === 'scallop') {
-    // Weiß geschwungen – weißer Rand mit Halbkreis-Bögen nach innen
-    const band = Math.round(S * 0.05);
-    const r = Math.round(S * 0.035);
-    ctx.save();
+  if (pbFrame === 'white') {
+    // Glatter weißer Rahmen: Doppellinie + dezente Eck-Punkte (wie Gold, nur weiß)
+    ctx.strokeStyle = 'rgba(255,255,255,.95)';
+    // äußere dicke Linie
+    ctx.lineWidth = Math.round(S*0.035);
+    const o = Math.round(S*0.03);
+    ctx.strokeRect(o, o, W-2*o, H-2*o);
+    // innere dünne Linie
+    ctx.lineWidth = Math.round(S*0.008);
+    const inn = Math.round(S*0.065);
+    ctx.strokeRect(inn, inn, W-2*inn, H-2*inn);
+    // dezente Eck-Punkte
     ctx.fillStyle = 'rgba(255,255,255,.95)';
-    ctx.fillRect(0,0,W,band); ctx.fillRect(0,H-band,W,band);
-    ctx.fillRect(0,0,band,H); ctx.fillRect(W-band,0,band,H);
-    const place = (cx,cy) => { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); };
-    const nX = Math.max(3, Math.round(W/(r*2)));
-    const sX = W/nX;
-    for (let i=0;i<nX;i++){ place(sX*i+sX/2, band); place(sX*i+sX/2, H-band); }
-    const nY = Math.max(4, Math.round(H/(r*2)));
-    const sY = H/nY;
-    for (let i=0;i<nY;i++){ place(band, sY*i+sY/2); place(W-band, sY*i+sY/2); }
-    ctx.restore();
+    const dot = (cx,cy) => { ctx.beginPath(); ctx.arc(cx,cy,S*0.012,0,Math.PI*2); ctx.fill(); };
+    dot(inn,inn); dot(W-inn,inn); dot(inn,H-inn); dot(W-inn,H-inn);
     return;
   }
 
