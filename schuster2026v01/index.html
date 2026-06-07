@@ -316,12 +316,15 @@
   .pb-close{background:rgba(255,255,255,.15);border:none;color:#fff;
     width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;}
   .pb-stage{
-    position:relative;width:100%;max-width:480px;aspect-ratio:3/4;
-    background:#000;overflow:hidden;border-radius:16px;margin:0 16px;
+    position:relative;width:calc(100% - 32px);max-width:440px;
+    aspect-ratio:3/4;flex-shrink:0;
+    background:#000;overflow:hidden;border-radius:16px;margin:0 16px 8px;
   }
   .pb-stage video,.pb-stage canvas,.pb-stage img{
-    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;
+    display:block;
   }
+  #pbVideo{background:#000;}
   #pbCanvas{display:none;}
   .pb-frame-overlay{
     position:absolute;inset:0;pointer-events:none;z-index:5;
@@ -607,10 +610,11 @@
 
     <!-- Photobox-Button (nur Premium) -->
     <button class="photobox-btn pb-hidden" id="photoboxBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="6" width="18" height="14" rx="2"/>
-        <circle cx="12" cy="13" r="3.5"/>
-        <path d="M8 6l1.5-2h5L16 6"/>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2.5" y="7" width="19" height="13" rx="2.5"/>
+        <circle cx="12" cy="13.5" r="3.6"/>
+        <path d="M8 7l1.4-2.2h5.2L16 7"/>
+        <path d="M18.5 3.2l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z" fill="currentColor" stroke="none"/>
       </svg>
       <span data-i18n="photoboxBtn">Photobox starten</span>
     </button>
@@ -2139,10 +2143,9 @@ const pbResult  = document.getElementById('pbResult');
 const pbStage   = document.getElementById('pbStage');
 
 function pbApplyVisualFilter() {
-  const cls = 'filter-' + pbFilter;
-  pbVideo.className = cls;
-  pbResult.className = pbResult.classList.contains('pb-hidden') ? 'pb-hidden ' + cls : cls;
-  if (pbResult.classList.contains('pb-hidden')) pbResult.classList.add('pb-hidden');
+  // Filter-Klassen entfernen, neue setzen (pb-hidden NICHT anfassen)
+  ['none','bw','vintage','warm','cool'].forEach(f => pbVideo.classList.remove('filter-'+f));
+  pbVideo.classList.add('filter-' + pbFilter);
 }
 
 function pbApplyFrame() {
@@ -2176,17 +2179,30 @@ function pbUpdateSticker() {
 async function pbStartCamera() {
   if (pbStream) { pbStream.getTracks().forEach(tr => tr.stop()); pbStream = null; }
   try {
+    console.log('Photobox: Kamera anfordern, facing=', pbFacing);
     pbStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: pbFacing, width: { ideal: 1080 }, height: { ideal: 1440 } },
       audio: false
     });
+    console.log('Photobox: Stream erhalten', pbStream.getVideoTracks()[0]?.label);
     pbVideo.srcObject = pbStream;
-    // Rückkamera nicht spiegeln, Frontkamera spiegeln
+    // Filter-Klasse setzen (ohne pb-hidden zu zerstören)
+    pbVideo.classList.remove('pb-hidden');
+    pbVideo.classList.add('filter-' + pbFilter);
+    // Frontkamera spiegeln
     pbVideo.style.transform = pbFacing === 'user' ? 'scaleX(-1)' : 'none';
-    pbApplyVisualFilter();
+    // Explizit abspielen (iOS/Safari Policy)
+    pbVideo.onloadedmetadata = () => {
+      console.log('Photobox: Video bereit', pbVideo.videoWidth, 'x', pbVideo.videoHeight);
+      pbVideo.play().catch(err => console.warn('play() blockiert:', err));
+    };
+    // Falls Metadaten schon da sind
+    if (pbVideo.readyState >= 1) {
+      pbVideo.play().catch(err => console.warn('play() blockiert:', err));
+    }
   } catch(e) {
-    console.warn('Kamera:', e);
-    alert(t('pbCamError'));
+    console.error('Photobox Kamera-Fehler:', e.name, e.message);
+    alert(t('pbCamError') + '\n\n(' + e.name + ')');
     closePhotobox();
   }
 }
@@ -2235,6 +2251,16 @@ function closePhotobox() {
 }
 
 async function pbShootPhoto() {
+  // Sicherstellen dass das Video bereit ist
+  if (!pbVideo.videoWidth || pbVideo.videoWidth === 0) {
+    console.warn('Photobox: Video noch nicht bereit, warte...');
+    try { await pbVideo.play(); } catch(e){}
+    await new Promise(r => setTimeout(r, 600));
+    if (!pbVideo.videoWidth) {
+      alert(t('pbCamError'));
+      return;
+    }
+  }
   // Countdown 3-2-1
   document.getElementById('pbShoot').disabled = true;
   await pbRunCountdown();
