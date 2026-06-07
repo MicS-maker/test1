@@ -291,15 +291,15 @@
 
   /* === Photobox (Premium) === */
   .photobox-btn{
-    display:inline-flex;align-items:center;gap:10px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
     background:transparent;color:var(--accent-deep);
     border:2px solid var(--accent);cursor:pointer;
     font-family:'Jost',sans-serif;font-weight:500;font-size:15px;
-    letter-spacing:.04em;padding:14px 28px;border-radius:50px;
-    margin:0 auto 28px;transition:background .2s,color .2s;
+    letter-spacing:.04em;padding:14px 32px;border-radius:50px;
+    margin:0 auto 28px;width:fit-content;transition:background .2s,color .2s;
   }
   .photobox-btn:hover{background:var(--accent);color:#fff;}
-  .photobox-btn svg{width:20px;height:20px;}
+  .photobox-btn svg{width:22px;height:22px;flex-shrink:0;}
 
   #pbOverlay{
     display:none;position:fixed;inset:0;z-index:9500;
@@ -333,6 +333,23 @@
     font-size:28px;font-style:italic;padding:0 20px;pointer-events:none;
     text-shadow:0 2px 12px rgba(0,0,0,.6);word-break:break-word;
   }
+  .pb-head-actions{display:flex;align-items:center;gap:10px;}
+  .pb-icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
+    width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;}
+  .pb-sticker-overlay{position:absolute;inset:0;z-index:6;pointer-events:none;
+    display:flex;align-items:flex-start;justify-content:flex-end;padding:24px;
+    font-size:64px;line-height:1;}
+  .pb-countdown{position:absolute;inset:0;z-index:10;display:none;
+    align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;
+    font-size:160px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.5);
+    background:rgba(0,0,0,.25);}
+  .pb-countdown.show{display:flex;}
+  .pb-row-split{display:flex;gap:16px;}
+  .pb-subcol{flex:1;}
+  .pb-range{width:100%;accent-color:var(--accent);height:32px;}
+  .pb-text-overlay.pos-top{top:30px;bottom:auto;}
+  .pb-text-overlay.pos-middle{top:50%;bottom:auto;transform:translateY(-50%);}
+  .pb-text-overlay.pos-bottom{bottom:30px;top:auto;}
   .pb-controls{width:100%;max-width:480px;padding:16px;}
   .pb-row{margin-bottom:16px;}
   .pb-row-label{color:rgba(255,255,255,.6);font-size:12px;
@@ -690,7 +707,10 @@
 <div id="pbOverlay">
   <div class="pb-head">
     <h3 id="pbTitle">Photobox</h3>
-    <button class="pb-close" id="pbClose">×</button>
+    <div class="pb-head-actions">
+      <button class="pb-icon-btn" id="pbFlip" title="Kamera wechseln">🔄</button>
+      <button class="pb-close" id="pbClose">×</button>
+    </div>
   </div>
 
   <div class="pb-stage" id="pbStage">
@@ -698,7 +718,9 @@
     <canvas id="pbCanvas"></canvas>
     <img id="pbResult" class="pb-hidden" alt="">
     <div class="pb-frame-overlay" id="pbFrameOverlay"></div>
+    <div class="pb-sticker-overlay" id="pbStickerOverlay"></div>
     <div class="pb-text-overlay" id="pbTextOverlay"></div>
+    <div class="pb-countdown" id="pbCountdown"></div>
   </div>
 
   <div class="pb-controls">
@@ -724,6 +746,39 @@
     <div class="pb-row">
       <div class="pb-row-label" data-i18n="pbText">Text</div>
       <input type="text" class="pb-text-input" id="pbTextInput" maxlength="40" placeholder="z.B. Anna & Thomas 2026">
+    </div>
+    <div class="pb-row pb-row-split">
+      <div class="pb-subcol">
+        <div class="pb-row-label" data-i18n="pbTextColor">Schriftfarbe</div>
+        <div class="pb-chips" id="pbTextColors">
+          <button class="pb-chip active" data-color="#ffffff" style="color:#fff" data-i18n="pbColorWhite">Weiß</button>
+          <button class="pb-chip" data-color="#111111" data-i18n="pbColorBlack">Schwarz</button>
+        </div>
+      </div>
+    </div>
+    <div class="pb-row">
+      <div class="pb-row-label" data-i18n="pbTextPos">Textposition</div>
+      <div class="pb-chips" id="pbTextPositions">
+        <button class="pb-chip" data-pos="top" data-i18n="pbPosTop">Oben</button>
+        <button class="pb-chip" data-pos="middle" data-i18n="pbPosMiddle">Mitte</button>
+        <button class="pb-chip active" data-pos="bottom" data-i18n="pbPosBottom">Unten</button>
+      </div>
+    </div>
+    <div class="pb-row">
+      <div class="pb-row-label" data-i18n="pbTextSize">Textgröße</div>
+      <input type="range" class="pb-range" id="pbTextSize" min="18" max="56" value="28">
+    </div>
+    <div class="pb-row">
+      <div class="pb-row-label" data-i18n="pbSticker">Sticker</div>
+      <div class="pb-chips" id="pbStickers">
+        <button class="pb-chip active" data-sticker="" data-i18n="pbStickerNone">Kein</button>
+        <button class="pb-chip" data-sticker="❤️">❤️</button>
+        <button class="pb-chip" data-sticker="🥂">🥂</button>
+        <button class="pb-chip" data-sticker="✨">✨</button>
+        <button class="pb-chip" data-sticker="💍">💍</button>
+        <button class="pb-chip" data-sticker="🎉">🎉</button>
+        <button class="pb-chip" data-sticker="🌸">🌸</button>
+      </div>
     </div>
   </div>
 
@@ -789,7 +844,7 @@ const SUPABASE_KEY = "sb_publishable_-NBQeOr46tAHPJyWR-NbmA_Qgcqny4t";
 
 // Event-ID – wird aus der URL gelesen (z.B. /moments/hochzeiten/mueller2024)
 // Oder hier manuell setzen für Tests:
-const EVENT_ID_OVERRIDE = "schuster2026v01"; // leer lassen wenn URL-basiert
+const EVENT_ID_OVERRIDE = "schuster2026"; // leer lassen wenn URL-basiert
 
 /* ============================================================
    Event-ID aus URL oder Override
@@ -851,6 +906,9 @@ const I18N={
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'S/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Kühl',
     pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameClassic:'Klassisch',pbFrameGold:'Gold',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Foto aufnehmen',pbRetry:'Neu',pbPost:'In Galerie posten',
+    pbTextColor:'Schriftfarbe',pbColorWhite:'Weiß',pbColorBlack:'Schwarz',
+    pbTextPos:'Textposition',pbPosTop:'Oben',pbPosMiddle:'Mitte',pbPosBottom:'Unten',
+    pbTextSize:'Textgröße',pbSticker:'Sticker',pbStickerNone:'Kein',
     pbCamError:'Kamera konnte nicht gestartet werden. Bitte Zugriff erlauben.',
     pbPosting:'Wird gepostet…'
   },
@@ -890,6 +948,9 @@ const I18N={
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'B/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Cool',
     pbFrame:'Frame',pbFrameNone:'None',pbFrameClassic:'Classic',pbFrameGold:'Gold',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Take photo',pbRetry:'Retry',pbPost:'Post to gallery',
+    pbTextColor:'Text color',pbColorWhite:'White',pbColorBlack:'Black',
+    pbTextPos:'Text position',pbPosTop:'Top',pbPosMiddle:'Middle',pbPosBottom:'Bottom',
+    pbTextSize:'Text size',pbSticker:'Sticker',pbStickerNone:'None',
     pbCamError:'Camera could not start. Please allow access.',
     pbPosting:'Posting…'
   }
@@ -2064,6 +2125,11 @@ let pbStream = null;
 let pbFilter = 'none';
 let pbFrame  = 'none';
 let pbHasShot = false;
+let pbTextColor = '#ffffff';
+let pbTextPos = 'bottom';
+let pbTextSize = 28;
+let pbSticker = '';
+let pbFacing = 'user';
 
 const pbOverlay = document.getElementById('pbOverlay');
 const pbVideo   = document.getElementById('pbVideo');
@@ -2094,8 +2160,53 @@ function pbApplyFrame() {
 }
 
 function pbUpdateText() {
-  document.getElementById('pbTextOverlay').textContent =
-    document.getElementById('pbTextInput').value || '';
+  const ov = document.getElementById('pbTextOverlay');
+  ov.textContent = document.getElementById('pbTextInput').value || '';
+  ov.style.color = pbTextColor;
+  ov.style.fontSize = pbTextSize + 'px';
+  ov.classList.remove('pos-top','pos-middle','pos-bottom');
+  ov.classList.add('pos-' + pbTextPos);
+}
+
+function pbUpdateSticker() {
+  document.getElementById('pbStickerOverlay').textContent = pbSticker || '';
+}
+
+async function pbStartCamera() {
+  if (pbStream) { pbStream.getTracks().forEach(tr => tr.stop()); pbStream = null; }
+  try {
+    pbStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: pbFacing, width: { ideal: 1080 }, height: { ideal: 1440 } },
+      audio: false
+    });
+    pbVideo.srcObject = pbStream;
+    // Rückkamera nicht spiegeln, Frontkamera spiegeln
+    pbVideo.style.transform = pbFacing === 'user' ? 'scaleX(-1)' : 'none';
+    pbApplyVisualFilter();
+  } catch(e) {
+    console.warn('Kamera:', e);
+    alert(t('pbCamError'));
+    closePhotobox();
+  }
+}
+
+function pbRunCountdown() {
+  return new Promise(resolve => {
+    const el = document.getElementById('pbCountdown');
+    let n = 3;
+    el.textContent = n;
+    el.classList.add('show');
+    const iv = setInterval(() => {
+      n--;
+      if (n <= 0) {
+        clearInterval(iv);
+        el.classList.remove('show');
+        resolve();
+      } else {
+        el.textContent = n;
+      }
+    }, 1000);
+  });
 }
 
 async function openPhotobox() {
@@ -2108,18 +2219,8 @@ async function openPhotobox() {
   document.getElementById('pbActionsReview').classList.add('pb-hidden');
   pbApplyFrame();
   pbUpdateText();
-  try {
-    pbStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1080 }, height: { ideal: 1440 } },
-      audio: false
-    });
-    pbVideo.srcObject = pbStream;
-    pbApplyVisualFilter();
-  } catch(e) {
-    console.warn('Kamera:', e);
-    alert(t('pbCamError'));
-    closePhotobox();
-  }
+  pbUpdateSticker();
+  await pbStartCamera();
 }
 
 function closePhotobox() {
@@ -2130,9 +2231,13 @@ function closePhotobox() {
   }
 }
 
-function pbShootPhoto() {
+async function pbShootPhoto() {
+  // Countdown 3-2-1
+  document.getElementById('pbShoot').disabled = true;
+  await pbRunCountdown();
+  document.getElementById('pbShoot').disabled = false;
+
   const vw = pbVideo.videoWidth, vh = pbVideo.videoHeight;
-  // Auf 3:4 zuschneiden
   const targetRatio = 3/4;
   let sw = vw, sh = vh, sx = 0, sy = 0;
   if (vw/vh > targetRatio) { sw = vh*targetRatio; sx = (vw-sw)/2; }
@@ -2142,7 +2247,6 @@ function pbShootPhoto() {
   pbCanvas.height = 1440;
   const ctx = pbCanvas.getContext('2d');
 
-  // Filter via CSS auf Canvas anwenden
   const filterMap = {
     none:'none', bw:'grayscale(1) contrast(1.05)',
     vintage:'sepia(.5) contrast(.95) saturate(1.2) brightness(1.05)',
@@ -2150,30 +2254,45 @@ function pbShootPhoto() {
     cool:'saturate(1.1) brightness(1.02) hue-rotate(12deg)'
   };
   ctx.filter = filterMap[pbFilter] || 'none';
-  // Spiegeln (Selfie)
-  ctx.translate(pbCanvas.width, 0);
-  ctx.scale(-1, 1);
+
+  // Nur Frontkamera spiegeln
+  if (pbFacing === 'user') {
+    ctx.translate(pbCanvas.width, 0);
+    ctx.scale(-1, 1);
+  }
   ctx.drawImage(pbVideo, sx, sy, sw, sh, 0, 0, pbCanvas.width, pbCanvas.height);
   ctx.setTransform(1,0,0,1,0,0);
   ctx.filter = 'none';
 
-  // Rahmen auf Canvas zeichnen
   pbDrawFrame(ctx);
-  // Text auf Canvas zeichnen
+  pbDrawSticker(ctx);
   pbDrawText(ctx);
 
   pbResult.src = pbCanvas.toDataURL('image/jpeg', 0.92);
   pbResult.classList.remove('pb-hidden');
   pbResult.className = 'filter-none';
+  pbResult.style.transform = 'none';
   pbVideo.classList.add('pb-hidden');
-  // Overlay-Text/Frame ausblenden (sind jetzt im Bild)
+  // Live-Overlays ausblenden (sind jetzt im Bild)
   document.getElementById('pbTextOverlay').textContent = '';
+  document.getElementById('pbStickerOverlay').textContent = '';
   document.getElementById('pbFrameOverlay').style.boxShadow = 'none';
   document.getElementById('pbFrameOverlay').style.background = 'none';
 
   pbHasShot = true;
   document.getElementById('pbActionsLive').classList.add('pb-hidden');
   document.getElementById('pbActionsReview').classList.remove('pb-hidden');
+}
+
+function pbDrawSticker(ctx) {
+  if (!pbSticker) return;
+  const W = pbCanvas.width;
+  ctx.save();
+  ctx.font = '140px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  ctx.fillText(pbSticker, W - 50, 50);
+  ctx.restore();
 }
 
 function pbDrawFrame(ctx) {
@@ -2198,13 +2317,21 @@ function pbDrawText(ctx) {
   const txt = document.getElementById('pbTextInput').value.trim();
   if (!txt) return;
   const W = pbCanvas.width, H = pbCanvas.height;
+  // Canvas ist 1440 hoch, Slider 18–56 → skaliere auf Canvas (×2.3)
+  const fontPx = Math.round(pbTextSize * 2.3);
+  let y;
+  if (pbTextPos === 'top') y = fontPx + 60;
+  else if (pbTextPos === 'middle') y = H/2;
+  else y = H - 120;
   ctx.save();
-  ctx.font = 'italic 64px "Cormorant Garamond", serif';
+  ctx.font = `italic ${fontPx}px "Cormorant Garamond", serif`;
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = 'rgba(0,0,0,.6)';
-  ctx.shadowBlur = 24; ctx.shadowOffsetY = 4;
-  ctx.fillText(txt, W/2, H - 120, W - 160);
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = pbTextColor;
+  // Schatten in Gegenfarbe für Lesbarkeit
+  ctx.shadowColor = pbTextColor === '#ffffff' ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.55)';
+  ctx.shadowBlur = 20; ctx.shadowOffsetY = 3;
+  ctx.fillText(txt, W/2, y, W - 120);
   ctx.restore();
 }
 
@@ -2252,6 +2379,48 @@ document.getElementById('pbFrames')?.addEventListener('click', e => {
   chip.classList.add('active');
   pbFrame = chip.dataset.frame;
   if (!pbHasShot) pbApplyFrame();
+});
+
+// Kamera wechseln (Front/Rück)
+document.getElementById('pbFlip')?.addEventListener('click', async () => {
+  pbFacing = pbFacing === 'user' ? 'environment' : 'user';
+  if (!pbHasShot) await pbStartCamera();
+});
+
+// Schriftfarbe
+document.getElementById('pbTextColors')?.addEventListener('click', e => {
+  const chip = e.target.closest('.pb-chip');
+  if (!chip) return;
+  document.querySelectorAll('#pbTextColors .pb-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  pbTextColor = chip.dataset.color;
+  if (!pbHasShot) pbUpdateText();
+});
+
+// Textposition
+document.getElementById('pbTextPositions')?.addEventListener('click', e => {
+  const chip = e.target.closest('.pb-chip');
+  if (!chip) return;
+  document.querySelectorAll('#pbTextPositions .pb-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  pbTextPos = chip.dataset.pos;
+  if (!pbHasShot) pbUpdateText();
+});
+
+// Textgröße
+document.getElementById('pbTextSize')?.addEventListener('input', e => {
+  pbTextSize = parseInt(e.target.value);
+  if (!pbHasShot) pbUpdateText();
+});
+
+// Sticker
+document.getElementById('pbStickers')?.addEventListener('click', e => {
+  const chip = e.target.closest('.pb-chip');
+  if (!chip) return;
+  document.querySelectorAll('#pbStickers .pb-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  pbSticker = chip.dataset.sticker;
+  if (!pbHasShot) pbUpdateSticker();
 });
 
 /* ============================================================
