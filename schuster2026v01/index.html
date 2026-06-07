@@ -304,79 +304,97 @@
   #pbOverlay{
     display:none;position:fixed;inset:0;z-index:9500;
     background:#0d0d0d;flex-direction:column;
-    align-items:center;justify-content:flex-start;
-    overflow-y:auto;padding:0;
+    overflow:hidden;padding:0;
   }
   #pbOverlay.open{display:flex;}
+
   .pb-head{
-    width:100%;display:flex;align-items:center;justify-content:space-between;
-    padding:16px 20px;color:#fff;
+    flex-shrink:0;width:100%;display:flex;align-items:center;
+    justify-content:space-between;padding:12px 16px;color:#fff;
+    background:rgba(0,0,0,.4);z-index:20;
   }
-  .pb-head h3{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:22px;}
-  .pb-close{background:rgba(255,255,255,.15);border:none;color:#fff;
-    width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;}
+  .pb-head h3{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:20px;margin:0;}
+  .pb-head-actions{display:flex;align-items:center;gap:10px;}
+  .pb-icon-btn{background:rgba(255,255,255,.18);border:none;color:#fff;
+    width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+  .pb-close{background:rgba(255,255,255,.18);border:none;color:#fff;
+    width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+
+  /* Bühne: füllt verfügbaren Raum, Kamera prominent */
   .pb-stage{
-    position:relative;width:calc(100% - 32px);max-width:440px;
-    aspect-ratio:3/4;flex-shrink:0;
-    background:#000;overflow:hidden;border-radius:16px;margin:0 16px 8px;
+    position:relative;flex:1 1 auto;width:100%;
+    min-height:0;background:#000;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
   }
   .pb-stage video,.pb-stage canvas,.pb-stage img{
-    position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;
-    display:block;
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    object-fit:cover;display:block;
   }
   #pbVideo{background:#000;}
   #pbCanvas{display:none;}
-  .pb-frame-overlay{
-    position:absolute;inset:0;pointer-events:none;z-index:5;
-    border-radius:16px;
-  }
-  .pb-text-overlay{
-    position:absolute;left:0;right:0;bottom:30px;z-index:6;
-    text-align:center;color:#fff;font-family:'Cormorant Garamond',serif;
-    font-size:28px;font-style:italic;padding:0 20px;pointer-events:none;
-    text-shadow:0 2px 12px rgba(0,0,0,.6);word-break:break-word;
-  }
-  .pb-head-actions{display:flex;align-items:center;gap:10px;}
-  .pb-icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
-    width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;}
+
+  .pb-frame-overlay{position:absolute;inset:0;pointer-events:none;z-index:5;}
   .pb-sticker-overlay{position:absolute;inset:0;z-index:6;pointer-events:none;
     display:flex;align-items:flex-start;justify-content:flex-end;padding:24px;
     font-size:64px;line-height:1;}
-  .pb-countdown{position:absolute;inset:0;z-index:10;display:none;
-    align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;
-    font-size:160px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.5);
-    background:rgba(0,0,0,.25);}
-  .pb-countdown.show{display:flex;}
-  .pb-row-split{display:flex;gap:16px;}
-  .pb-subcol{flex:1;}
-  .pb-range{width:100%;accent-color:var(--accent);height:32px;}
+  .pb-text-overlay{
+    position:absolute;left:0;right:0;bottom:40px;z-index:7;
+    text-align:center;color:#fff;font-family:'Cormorant Garamond',serif;
+    font-size:28px;font-style:italic;padding:0 24px;pointer-events:none;
+    text-shadow:0 2px 12px rgba(0,0,0,.6);word-break:break-word;
+  }
   .pb-text-overlay.pos-top{top:30px;bottom:auto;}
   .pb-text-overlay.pos-middle{top:50%;bottom:auto;transform:translateY(-50%);}
-  .pb-text-overlay.pos-bottom{bottom:30px;top:auto;}
-  .pb-controls{width:100%;max-width:480px;padding:16px;}
-  .pb-row{margin-bottom:16px;}
-  .pb-row-label{color:rgba(255,255,255,.6);font-size:12px;
-    letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+  .pb-text-overlay.pos-bottom{bottom:40px;top:auto;}
+
+  .pb-countdown{position:absolute;inset:0;z-index:15;display:none;
+    align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;
+    font-size:140px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);
+    background:rgba(0,0,0,.3);}
+  .pb-countdown.show{display:flex;}
+
+  /* Bedienleiste: scrollbares Bottom-Sheet */
+  .pb-controls{
+    flex-shrink:0;width:100%;max-height:38vh;overflow-y:auto;
+    padding:14px 16px 6px;background:#161616;
+    -webkit-overflow-scrolling:touch;
+  }
+  .pb-row{margin-bottom:14px;}
+  .pb-row-label{color:rgba(255,255,255,.55);font-size:11px;
+    letter-spacing:.12em;text-transform:uppercase;margin-bottom:7px;}
   .pb-chips{display:flex;gap:8px;flex-wrap:wrap;}
   .pb-chip{
     background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
-    color:#fff;border-radius:50px;padding:8px 16px;font-size:13px;
-    cursor:pointer;transition:all .2s;font-family:'Jost',sans-serif;
+    color:#fff;border-radius:50px;padding:9px 16px;font-size:13px;
+    cursor:pointer;transition:all .15s;font-family:'Jost',sans-serif;
+    -webkit-tap-highlight-color:transparent;white-space:nowrap;
   }
   .pb-chip.active{background:var(--accent);border-color:var(--accent);}
   .pb-text-input{
     width:100%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-    color:#fff;border-radius:12px;padding:12px 16px;font-size:15px;
-    font-family:'Jost',sans-serif;
+    color:#fff;border-radius:12px;padding:12px 16px;font-size:16px;
+    font-family:'Jost',sans-serif;-webkit-appearance:none;
   }
   .pb-text-input::placeholder{color:rgba(255,255,255,.4);}
-  .pb-actions{display:flex;gap:12px;width:100%;max-width:480px;padding:0 16px 24px;}
+  .pb-row-split{display:flex;gap:16px;}
+  .pb-subcol{flex:1;}
+  .pb-range{width:100%;accent-color:var(--accent);height:36px;}
+
+  /* Aktionsleiste unten fix */
+  .pb-actions{
+    flex-shrink:0;display:flex;gap:12px;width:100%;
+    padding:12px 16px calc(16px + env(safe-area-inset-bottom));
+    background:#161616;border-top:1px solid rgba(255,255,255,.08);
+  }
   .pb-btn{
     flex:1;padding:16px;border:none;border-radius:50px;cursor:pointer;
-    font-family:'Jost',sans-serif;font-weight:500;font-size:15px;letter-spacing:.04em;
+    font-family:'Jost',sans-serif;font-weight:500;font-size:16px;letter-spacing:.03em;
+    -webkit-tap-highlight-color:transparent;
   }
   .pb-btn-shoot{background:#fff;color:#0d0d0d;}
-  .pb-btn-retry{background:rgba(255,255,255,.15);color:#fff;}
+  .pb-btn-retry{background:rgba(255,255,255,.18);color:#fff;}
   .pb-btn-post{background:var(--accent);color:#fff;}
   .pb-hidden{display:none !important;}
 
@@ -386,6 +404,13 @@
   .filter-vintage{filter:sepia(.5) contrast(.95) saturate(1.2) brightness(1.05);}
   .filter-warm{filter:saturate(1.3) brightness(1.08) hue-rotate(-8deg);}
   .filter-cool{filter:saturate(1.1) brightness(1.02) hue-rotate(12deg);}
+
+  /* Desktop: Bühne begrenzen, zentriert */
+  @media (min-width:768px){
+    .pb-stage{max-width:440px;max-height:587px;margin:12px auto 0;border-radius:16px;flex:0 0 auto;aspect-ratio:3/4;}
+    .pb-controls{max-width:472px;margin:0 auto;max-height:none;}
+    .pb-actions{max-width:472px;margin:0 auto;}
+  }
 
   /* === Scroll-Animationen === */
   .fade-in{
@@ -718,7 +743,7 @@
   </div>
 
   <div class="pb-stage" id="pbStage">
-    <video id="pbVideo" autoplay playsinline muted></video>
+    <video id="pbVideo" autoplay playsinline webkit-playsinline muted disablepictureinpicture></video>
     <canvas id="pbCanvas"></canvas>
     <img id="pbResult" class="pb-hidden" alt="">
     <div class="pb-frame-overlay" id="pbFrameOverlay"></div>
@@ -1697,7 +1722,7 @@ function showCurrent(){
   const it=currentItems[currentIndex];
   if(!it)return;
   lightboxImg.src=it.fullUrl||it.url;
-  lbLikeCount.textContent=countOf(it.public_id)||t('lbLike')||'Gefällt mir';
+  lbLikeCount.textContent=countOf(it.public_id);
 }
 
 lbClose.addEventListener('click',()=>lightbox.classList.remove('show'));
@@ -2178,33 +2203,48 @@ function pbUpdateSticker() {
 
 async function pbStartCamera() {
   if (pbStream) { pbStream.getTracks().forEach(tr => tr.stop()); pbStream = null; }
-  try {
-    console.log('Photobox: Kamera anfordern, facing=', pbFacing);
-    pbStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: pbFacing, width: { ideal: 1080 }, height: { ideal: 1440 } },
-      audio: false
-    });
-    console.log('Photobox: Stream erhalten', pbStream.getVideoTracks()[0]?.label);
-    pbVideo.srcObject = pbStream;
-    // Filter-Klasse setzen (ohne pb-hidden zu zerstören)
-    pbVideo.classList.remove('pb-hidden');
-    pbVideo.classList.add('filter-' + pbFilter);
-    // Frontkamera spiegeln
-    pbVideo.style.transform = pbFacing === 'user' ? 'scaleX(-1)' : 'none';
-    // Explizit abspielen (iOS/Safari Policy)
-    pbVideo.onloadedmetadata = () => {
-      console.log('Photobox: Video bereit', pbVideo.videoWidth, 'x', pbVideo.videoHeight);
-      pbVideo.play().catch(err => console.warn('play() blockiert:', err));
-    };
-    // Falls Metadaten schon da sind
-    if (pbVideo.readyState >= 1) {
-      pbVideo.play().catch(err => console.warn('play() blockiert:', err));
+
+  // Mehrere Constraint-Varianten probieren (Fallback-Kette)
+  const attempts = [
+    { video: { facingMode: pbFacing, width: { ideal: 1280 }, height: { ideal: 1707 } }, audio: false },
+    { video: { facingMode: pbFacing }, audio: false },
+    { video: true, audio: false }
+  ];
+
+  let lastErr = null;
+  for (const constraints of attempts) {
+    try {
+      console.log('Photobox: getUserMedia', JSON.stringify(constraints.video));
+      pbStream = await navigator.mediaDevices.getUserMedia(constraints);
+      break;
+    } catch(e) {
+      console.warn('Photobox: Versuch fehlgeschlagen:', e.name);
+      lastErr = e;
     }
-  } catch(e) {
-    console.error('Photobox Kamera-Fehler:', e.name, e.message);
-    alert(t('pbCamError') + '\n\n(' + e.name + ')');
-    closePhotobox();
   }
+
+  if (!pbStream) {
+    console.error('Photobox Kamera-Fehler:', lastErr?.name, lastErr?.message);
+    alert(t('pbCamError') + '\n\n(' + (lastErr?.name || 'Fehler') + ')');
+    closePhotobox();
+    return;
+  }
+
+  console.log('Photobox: Stream OK ->', pbStream.getVideoTracks()[0]?.label);
+  pbVideo.srcObject = pbStream;
+  pbVideo.muted = true;
+  pbVideo.setAttribute('playsinline', '');
+  pbVideo.classList.remove('pb-hidden');
+  pbVideo.classList.remove('filter-none','filter-bw','filter-vintage','filter-warm','filter-cool');
+  pbVideo.classList.add('filter-' + pbFilter);
+  pbVideo.style.transform = pbFacing === 'user' ? 'scaleX(-1)' : 'none';
+
+  // play() robust: sofort + nach Metadaten
+  const tryPlay = () => pbVideo.play()
+    .then(() => console.log('Photobox: Video spielt', pbVideo.videoWidth, 'x', pbVideo.videoHeight))
+    .catch(err => console.warn('Photobox: play() Fehler:', err.name));
+  pbVideo.onloadedmetadata = tryPlay;
+  tryPlay();
 }
 
 function pbRunCountdown() {
