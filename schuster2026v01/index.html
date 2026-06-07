@@ -1766,7 +1766,16 @@ function openLightbox(idx){currentIndex=idx;showCurrent();lightbox.classList.add
 function showCurrent(){
   const it=currentItems[currentIndex];
   if(!it)return;
-  lightboxImg.src=it.fullUrl||it.url;
+  // Sofort Thumbnail zeigen (immer vorhanden), dann auf Vollbild tauschen
+  lightboxImg.src = it.url;
+  if (it.fullUrl && it.fullUrl !== it.url) {
+    const hi = new Image();
+    hi.onload = () => {
+      // nur tauschen wenn noch dasselbe Foto offen ist
+      if (currentItems[currentIndex] === it) lightboxImg.src = it.fullUrl;
+    };
+    hi.src = it.fullUrl;
+  }
   lbLikeCount.textContent=countOf(it.public_id);
 }
 
