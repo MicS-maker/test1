@@ -355,16 +355,16 @@
     display:flex;align-items:flex-start;justify-content:flex-end;padding:18px;
     font-size:64px;line-height:1;}
   .pb-text-overlay{
-    position:absolute;left:0;right:0;bottom:40px;z-index:7;
+    position:absolute;left:11%;right:11%;bottom:10%;z-index:7;
     text-align:center;color:#fff;font-family:'Cormorant Garamond',serif;
-    font-size:28px;font-style:italic;padding:0 24px;pointer-events:none;
+    font-size:28px;font-style:italic;pointer-events:none;
     text-shadow:0 2px 12px rgba(0,0,0,.6);word-break:break-word;
   }
-  .pb-text-overlay.pos-top{top:30px;bottom:auto;text-align:center;}
+  .pb-text-overlay.pos-top{top:10%;bottom:auto;text-align:center;}
   .pb-text-overlay.pos-middle{top:50%;bottom:auto;transform:translateY(-50%);text-align:center;}
-  .pb-text-overlay.pos-bottom{bottom:40px;top:auto;text-align:center;}
-  .pb-text-overlay.pos-bottomleft{bottom:40px;top:auto;text-align:left;padding-left:30px;}
-  .pb-text-overlay.pos-bottomright{bottom:40px;top:auto;text-align:right;padding-right:30px;}
+  .pb-text-overlay.pos-bottom{bottom:10%;top:auto;text-align:center;}
+  .pb-text-overlay.pos-bottomleft{bottom:10%;top:auto;text-align:left;}
+  .pb-text-overlay.pos-bottomright{bottom:10%;top:auto;text-align:right;}
 
   .pb-countdown{position:absolute;inset:0;z-index:15;display:none;
     align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;
@@ -2561,17 +2561,17 @@ function pbDrawText(ctx) {
   const txt = document.getElementById('pbTextInput').value.trim();
   if (!txt) return;
   const W = pbCanvas.width, H = pbCanvas.height;
-  // Schriftgröße relativ zur Canvas-Höhe (prominenter Faktor 3.0)
   const fontPx = Math.round(pbTextSize * (H/1440) * 3.0);
-  // Rand wächst mit Schriftgröße → große Schrift wird nicht abgeschnitten
-  const margin = Math.round(Math.max(H * 0.06, fontPx * 0.7));
-  const sideMargin = Math.round(W * 0.06);
+  // Sicherer Innenbereich INNERHALB des Rahmens (~11% Rand)
+  const insetX = Math.round(W * 0.11);
+  const insetY = Math.round(Math.max(H * 0.10, fontPx * 0.65));
+  const half = fontPx / 2;
   let x, y, align;
-  if (pbTextPos === 'top')              { x=W/2; y=fontPx+margin; align='center'; }
-  else if (pbTextPos === 'middle')      { x=W/2; y=H/2;           align='center'; }
-  else if (pbTextPos === 'bottomleft')  { x=sideMargin; y=H-margin; align='left'; }
-  else if (pbTextPos === 'bottomright') { x=W-sideMargin; y=H-margin; align='right'; }
-  else                                  { x=W/2; y=H-margin;      align='center'; }
+  if (pbTextPos === 'top')              { x=W/2;        y=insetY + half;     align='center'; }
+  else if (pbTextPos === 'middle')      { x=W/2;        y=H/2;               align='center'; }
+  else if (pbTextPos === 'bottomleft')  { x=insetX;     y=H-insetY - half;   align='left';   }
+  else if (pbTextPos === 'bottomright') { x=W-insetX;   y=H-insetY - half;   align='right';  }
+  else                                  { x=W/2;        y=H-insetY - half;   align='center'; }
   ctx.save();
   ctx.font = `italic ${pbTextWeight} ${fontPx}px "Cormorant Garamond", serif`;
   ctx.textAlign = align;
@@ -2579,7 +2579,8 @@ function pbDrawText(ctx) {
   ctx.fillStyle = pbTextColor;
   ctx.shadowColor = pbTextColor === '#ffffff' ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.55)';
   ctx.shadowBlur = 20; ctx.shadowOffsetY = 3;
-  ctx.fillText(txt, x, y, W - sideMargin*2);
+  // maxWidth begrenzt auf Innenbereich → Text läuft nie unter den Seitenrahmen
+  ctx.fillText(txt, x, y, W - insetX*2);
   ctx.restore();
 }
 
