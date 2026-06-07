@@ -1582,7 +1582,8 @@ function renderGallery(){
     tile.className='tile';
     const img=document.createElement('img');
     img.src=it.url; img.loading='lazy'; img.alt='Foto';
-    img.addEventListener('click',()=>openLightbox(idx));
+    tile.style.cursor='pointer';
+    tile.addEventListener('click',()=>openLightbox(idx));
     const badge=document.createElement('div');
     badge.className='like-badge';
     badge.innerHTML=heartSVG+'<span>'+countOf(it.public_id)+'</span>';
