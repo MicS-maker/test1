@@ -429,6 +429,22 @@
     .pb-actions{max-width:472px;margin:0 auto;}
   }
 
+  /* === Scroll-Buttons === */
+  .scroll-btn{
+    position:fixed;right:18px;z-index:400;
+    width:44px;height:44px;border-radius:50%;
+    background:var(--accent);color:#fff;border:none;cursor:pointer;
+    display:none;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px -6px var(--shadow-primary);
+    transition:opacity .3s, transform .2s;-webkit-tap-highlight-color:transparent;
+  }
+  .scroll-btn:hover{transform:scale(1.08);}
+  .scroll-btn svg{width:22px;height:22px;}
+  #scrollTopBtn{bottom:78px;}
+  #scrollBottomBtn{bottom:24px;}
+  .scroll-btn.show{display:flex;}
+  body.screen-mode .scroll-btn, .lock:not(.hidden) ~ .scroll-btn { display:none !important; }
+
   /* === Scroll-Animationen === */
   .fade-in{
     opacity:0;
@@ -744,6 +760,14 @@
 </div>
 
 <!-- Lightbox -->
+<!-- Scroll-Buttons -->
+<button class="scroll-btn" id="scrollTopBtn" aria-label="Nach oben">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+<button class="scroll-btn" id="scrollBottomBtn" aria-label="Nach unten">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+</button>
+
 <div class="lightbox" id="lightbox">
   <span class="lb-close" id="lbClose">×</span>
   <button class="del-btn lb" id="lbDel" title="Foto ausblenden">×</button>
@@ -1284,6 +1308,7 @@ function checkPw(){
   const correct = (eventConfig.password||'moments').toLowerCase();
   if(entered===correct){
     lock.classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'auto' });
     loadHiddenFromDB().then(()=>loadGallery());
   } else {
     pwErr.textContent = LANG==='de' ? 'Das Passwort stimmt leider nicht.' : 'Wrong password.';
@@ -2728,6 +2753,39 @@ if ('serviceWorker' in navigator) {
 if (window.caches && caches.keys) {
   caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(()=>{});
 }
+
+/* ============================================================
+   Scroll-Buttons
+   ============================================================ */
+(function(){
+  const topBtn = document.getElementById('scrollTopBtn');
+  const botBtn = document.getElementById('scrollBottomBtn');
+  if (!topBtn || !botBtn) return;
+
+  topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  botBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+  function updateScrollBtns(){
+    // Nicht zeigen wenn PW-Sperre offen oder Beamer-Modus
+    const locked = document.getElementById('lock') && !document.getElementById('lock').classList.contains('hidden');
+    const screenMode = document.body.classList.contains('screen-mode');
+    if (locked || screenMode) {
+      topBtn.classList.remove('show');
+      botBtn.classList.remove('show');
+      return;
+    }
+    const y = window.scrollY;
+    const max = document.body.scrollHeight - window.innerHeight;
+    // Hoch-Button: ab 300px Scroll
+    topBtn.classList.toggle('show', y > 300);
+    // Runter-Button: solange nicht ganz unten
+    botBtn.classList.toggle('show', max - y > 300);
+  }
+  window.addEventListener('scroll', updateScrollBtns, { passive: true });
+  window.addEventListener('resize', updateScrollBtns);
+  setInterval(updateScrollBtns, 1000); // falls Galerie nachlädt
+  updateScrollBtns();
+})();
 
 /* ============================================================
    Init
