@@ -356,9 +356,11 @@
     font-size:28px;font-style:italic;padding:0 24px;pointer-events:none;
     text-shadow:0 2px 12px rgba(0,0,0,.6);word-break:break-word;
   }
-  .pb-text-overlay.pos-top{top:30px;bottom:auto;}
-  .pb-text-overlay.pos-middle{top:50%;bottom:auto;transform:translateY(-50%);}
-  .pb-text-overlay.pos-bottom{bottom:40px;top:auto;}
+  .pb-text-overlay.pos-top{top:30px;bottom:auto;text-align:center;}
+  .pb-text-overlay.pos-middle{top:50%;bottom:auto;transform:translateY(-50%);text-align:center;}
+  .pb-text-overlay.pos-bottom{bottom:40px;top:auto;text-align:center;}
+  .pb-text-overlay.pos-bottomleft{bottom:40px;top:auto;text-align:left;padding-left:30px;}
+  .pb-text-overlay.pos-bottomright{bottom:40px;top:auto;text-align:right;padding-right:30px;}
 
   .pb-countdown{position:absolute;inset:0;z-index:15;display:none;
     align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;
@@ -788,6 +790,7 @@
         <button class="pb-chip" data-frame="leaf" data-i18n="pbFrameLeaf">Blätter</button>
         <button class="pb-chip" data-frame="goldVintage" data-i18n="pbFrameGoldV">Gold antik</button>
         <button class="pb-chip" data-frame="scallop" data-i18n="pbFrameScallop">Geschwungen</button>
+        <button class="pb-chip" data-frame="baroque" data-i18n="pbFrameBaroque">Barock weiß</button>
         <button class="pb-chip" data-frame="film" data-i18n="pbFrameFilm">Film</button>
       </div>
     </div>
@@ -810,6 +813,8 @@
         <button class="pb-chip" data-pos="top" data-i18n="pbPosTop">Oben</button>
         <button class="pb-chip" data-pos="middle" data-i18n="pbPosMiddle">Mitte</button>
         <button class="pb-chip active" data-pos="bottom" data-i18n="pbPosBottom">Unten</button>
+        <button class="pb-chip" data-pos="bottomleft" data-i18n="pbPosBL">Unten links</button>
+        <button class="pb-chip" data-pos="bottomright" data-i18n="pbPosBR">Unten rechts</button>
       </div>
     </div>
     <div class="pb-row">
@@ -955,10 +960,10 @@ const I18N={
     photoboxBtn:'Photobox starten',
     photoboxTitle:'Foto-Box',photoboxSub:'Selfie mit Filter, Rahmen & Text',
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'S/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Kühl',
-    pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameLeaf:'Blätter',pbFrameGoldV:'Gold antik',pbFrameScallop:'Geschwungen',pbFrameFilm:'Film',
+    pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameLeaf:'Blätter',pbFrameGoldV:'Gold antik',pbFrameScallop:'Geschwungen',pbFrameBaroque:'Barock weiß',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Foto aufnehmen',pbRetry:'Neu',pbPost:'In Galerie posten',
     pbTextColor:'Schriftfarbe',pbColorWhite:'Weiß',pbColorBlack:'Schwarz',
-    pbTextPos:'Textposition',pbPosTop:'Oben',pbPosMiddle:'Mitte',pbPosBottom:'Unten',
+    pbTextPos:'Textposition',pbPosTop:'Oben',pbPosMiddle:'Mitte',pbPosBottom:'Unten',pbPosBL:'Unten links',pbPosBR:'Unten rechts',
     pbTextSize:'Textgröße',pbSticker:'Sticker',pbStickerNone:'Kein',
     pbCamError:'Kamera konnte nicht gestartet werden. Bitte Zugriff erlauben.',
     pbPosting:'Wird gepostet…'
@@ -998,10 +1003,10 @@ const I18N={
     photoboxBtn:'Start Photobox',
     photoboxTitle:'Photo Booth',photoboxSub:'Selfie with filter, frame & text',
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'B/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Cool',
-    pbFrame:'Frame',pbFrameNone:'None',pbFrameLeaf:'Botanical',pbFrameGoldV:'Vintage gold',pbFrameScallop:'Scalloped',pbFrameFilm:'Film',
+    pbFrame:'Frame',pbFrameNone:'None',pbFrameLeaf:'Botanical',pbFrameGoldV:'Vintage gold',pbFrameScallop:'Scalloped',pbFrameBaroque:'White baroque',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Take photo',pbRetry:'Retry',pbPost:'Post to gallery',
     pbTextColor:'Text color',pbColorWhite:'White',pbColorBlack:'Black',
-    pbTextPos:'Text position',pbPosTop:'Top',pbPosMiddle:'Middle',pbPosBottom:'Bottom',
+    pbTextPos:'Text position',pbPosTop:'Top',pbPosMiddle:'Middle',pbPosBottom:'Bottom',pbPosBL:'Bottom left',pbPosBR:'Bottom right',
     pbTextSize:'Text size',pbSticker:'Sticker',pbStickerNone:'None',
     pbCamError:'Camera could not start. Please allow access.',
     pbPosting:'Posting…'
@@ -2205,6 +2210,7 @@ function pbApplyFrame() {
     leaf:        'inset 0 0 0 6px rgba(122,158,110,.85)',
     goldVintage: 'inset 0 0 0 10px rgba(201,161,74,.9)',
     scallop:     'inset 0 0 0 12px rgba(255,255,255,.95)',
+    baroque:     'inset 0 0 0 26px rgba(255,255,255,.96)',
     film:        'inset 0 0 0 22px #111'
   };
   fo.style.boxShadow = frames[pbFrame] || 'none';
@@ -2219,9 +2225,9 @@ function pbUpdateText() {
   ov.style.color = pbTextColor;
   // WYSIWYG: gleiche relative Größe wie im finalen Foto
   const stageH = document.getElementById('pbStage').getBoundingClientRect().height || 400;
-  const livePx = Math.max(12, Math.round(pbTextSize * 2.3 / 1440 * stageH));
+  const livePx = Math.max(13, Math.round(pbTextSize * 3.0 / 1440 * stageH));
   ov.style.fontSize = livePx + 'px';
-  ov.classList.remove('pos-top','pos-middle','pos-bottom');
+  ov.classList.remove('pos-top','pos-middle','pos-bottom','pos-bottomleft','pos-bottomright');
   ov.classList.add('pos-' + pbTextPos);
 }
 
@@ -2481,6 +2487,64 @@ function pbDrawFrame(ctx) {
     return;
   }
 
+  if (pbFrame === 'baroque') {
+    // Stilisierter weißer Barock-Rahmen: dicker Rand, Tiefe, Eck-Schnörkel
+    const band = Math.round(S * 0.085);
+    // Rand mit Tiefenwirkung
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,W,band); ctx.fillRect(0,H-band,W,band);
+    ctx.fillRect(0,0,band,H); ctx.fillRect(W-band,0,band,H);
+    // Außenkante Schatten
+    ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = Math.round(S*0.004);
+    ctx.strokeRect(ctx.lineWidth/2, ctx.lineWidth/2, W-ctx.lineWidth, H-ctx.lineWidth);
+    // Innenkante: Profil-Linien (Tiefe)
+    ctx.strokeStyle = 'rgba(0,0,0,.10)'; ctx.lineWidth = Math.round(S*0.006);
+    ctx.strokeRect(band, band, W-2*band, H-2*band);
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = Math.round(S*0.004);
+    ctx.strokeRect(band*0.55, band*0.55, W-band*1.1, H-band*1.1);
+
+    // Schnörkel-Ornament (Akanthus-Stil) – als wiederverwendbare Funktion
+    const scroll = (cx, cy, sc, rot) => {
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(sc, sc);
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = 'rgba(0,0,0,.13)';
+      ctx.lineWidth = 1.4;
+      // Voluten-Spirale
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.bezierCurveTo(34,-6, 50,18, 30,40);
+      ctx.bezierCurveTo(16,54, -8,46, -4,28);
+      ctx.bezierCurveTo(-2,18, 10,16, 12,26);
+      ctx.bezierCurveTo(13,32, 6,34, 4,30);
+      ctx.stroke();
+      // Blattfächer
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(28,-26, 58,-20);
+      ctx.quadraticCurveTo(34,-6, 30,8);
+      ctx.quadraticCurveTo(20,-4, 0,0);
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(-22,-22, -48,-14);
+      ctx.quadraticCurveTo(-26,-4, -22,8);
+      ctx.quadraticCurveTo(-14,-2, 0,0);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+    };
+    const cs = S * 0.0016;
+    // Vier Eck-Ornamente nach innen gerichtet
+    scroll(band*0.9, band*0.9, cs, Math.PI*0.25);
+    scroll(W-band*0.9, band*0.9, cs, Math.PI*0.75);
+    scroll(band*0.9, H-band*0.9, cs, -Math.PI*0.25);
+    scroll(W-band*0.9, H-band*0.9, cs, -Math.PI*0.75);
+    // Mittel-Ornamente oben & unten
+    scroll(W/2, band*0.55, cs*0.85, Math.PI*0.5);
+    scroll(W/2, H-band*0.55, cs*0.85, -Math.PI*0.5);
+    return;
+  }
+
   if (pbFrame === 'leaf') {
     // Botanischer Blätterrahmen: dünne grüne Linie + Blattbüschel in den Ecken
     const sage = '#7a9e6e', sageDark = '#5e7d54';
@@ -2520,22 +2584,24 @@ function pbDrawText(ctx) {
   const txt = document.getElementById('pbTextInput').value.trim();
   if (!txt) return;
   const W = pbCanvas.width, H = pbCanvas.height;
-  // Schriftgröße relativ zur Canvas-Höhe (Slider 18–56)
-  const fontPx = Math.round(pbTextSize * (H/1440) * 2.3);
-  const margin = Math.round(H * 0.08);
-  let y;
-  if (pbTextPos === 'top') y = fontPx + margin;
-  else if (pbTextPos === 'middle') y = H/2;
-  else y = H - margin;
+  // Schriftgröße relativ zur Canvas-Höhe (prominenter Faktor 3.0)
+  const fontPx = Math.round(pbTextSize * (H/1440) * 3.0);
+  const margin = Math.round(H * 0.07);
+  const sideMargin = Math.round(W * 0.06);
+  let x, y, align;
+  if (pbTextPos === 'top')              { x=W/2; y=fontPx+margin; align='center'; }
+  else if (pbTextPos === 'middle')      { x=W/2; y=H/2;           align='center'; }
+  else if (pbTextPos === 'bottomleft')  { x=sideMargin; y=H-margin; align='left'; }
+  else if (pbTextPos === 'bottomright') { x=W-sideMargin; y=H-margin; align='right'; }
+  else                                  { x=W/2; y=H-margin;      align='center'; }
   ctx.save();
   ctx.font = `italic ${fontPx}px "Cormorant Garamond", serif`;
-  ctx.textAlign = 'center';
+  ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillStyle = pbTextColor;
-  // Schatten in Gegenfarbe für Lesbarkeit
   ctx.shadowColor = pbTextColor === '#ffffff' ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.55)';
   ctx.shadowBlur = 20; ctx.shadowOffsetY = 3;
-  ctx.fillText(txt, W/2, y, W - 120);
+  ctx.fillText(txt, x, y, W - sideMargin*2);
   ctx.restore();
 }
 
