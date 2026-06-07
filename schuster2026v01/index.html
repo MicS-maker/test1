@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Cache-Buster: immer aktuelle Version laden -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title id="pageTitle">Moments</title>
 <!-- Home-Bildschirm-Icon (Apple) + PWA -->
 <link rel="manifest" href="manifest.json">
@@ -818,7 +822,7 @@
     </div>
     <div class="pb-row">
       <div class="pb-row-label" data-i18n="pbTextSize">Textgröße</div>
-      <input type="range" class="pb-range" id="pbTextSize" min="16" max="48" value="24">
+      <input type="range" class="pb-range" id="pbTextSize" min="40" max="140" value="60">
     </div>
     <div class="pb-row">
       <div class="pb-row-label" data-i18n="pbTextWeight">Textstärke</div>
@@ -844,7 +848,7 @@
     </div>
     <div class="pb-row" id="pbStickerSizeRow">
       <div class="pb-row-label" data-i18n="pbStickerSize">Emoji-Größe</div>
-      <input type="range" class="pb-range" id="pbStickerSize" min="40" max="160" value="90">
+      <input type="range" class="pb-range" id="pbStickerSize" min="80" max="320" value="150">
     </div>
   </div>
 
@@ -2197,9 +2201,9 @@ let pbFrame  = 'none';
 let pbHasShot = false;
 let pbTextColor = '#ffffff';
 let pbTextPos = 'bottom';
-let pbTextSize = 24;
+let pbTextSize = 60;
 let pbSticker = '';
-let pbStickerSize = 90;   // Emoji-Größe (Slider)
+let pbStickerSize = 150;  // Emoji-Größe (Slider)
 let pbTextWeight = 500;   // Textstärke
 let pbFacing = 'user';
 let pbBaseImage = null;  // rohes aufgenommenes Foto (Image-Objekt)
@@ -2249,12 +2253,18 @@ function pbUpdateText() {
 function pbUpdateSticker() {
   const ov = document.getElementById('pbStickerOverlay');
   ov.textContent = pbSticker || '';
-  const stageH = document.getElementById('pbStage').getBoundingClientRect().height || 400;
+  const rect = document.getElementById('pbStage').getBoundingClientRect();
+  const stageH = rect.height || 400, stageW = rect.width || 300;
   const livePx = Math.max(20, Math.round(pbStickerSize * (stageH/1440) * 1.8));
   ov.style.fontSize = livePx + 'px';
-  // Abstand wie im finalen Bild
-  const pad = Math.round(livePx * 0.25 + stageH * 0.02);
-  ov.style.padding = pad + 'px';
+  // gleiche Inset-Logik wie im finalen Bild (Emoji-Mitte = W-inset, inset)
+  const inset = livePx * 0.55 + stageW * 0.10;
+  const padRight = Math.max(0, Math.round(inset - livePx/2));
+  const padTop   = Math.max(0, Math.round(inset - livePx/2));
+  ov.style.paddingTop = padTop + 'px';
+  ov.style.paddingRight = padRight + 'px';
+  ov.style.paddingLeft = '0px';
+  ov.style.paddingBottom = '0px';
 }
 
 async function pbStartCamera() {
@@ -2442,7 +2452,7 @@ function pbDrawSticker(ctx) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   // Abstand wächst mit der Größe → Emoji bleibt immer komplett im Bild (oben rechts)
-  const inset = Math.round(sizePx * 0.6 + W * 0.05);
+  const inset = Math.round(sizePx * 0.55 + W * 0.10);
   ctx.fillText(pbSticker, W - inset, inset);
   ctx.restore();
 }
@@ -2553,7 +2563,8 @@ function pbDrawText(ctx) {
   const W = pbCanvas.width, H = pbCanvas.height;
   // Schriftgröße relativ zur Canvas-Höhe (prominenter Faktor 3.0)
   const fontPx = Math.round(pbTextSize * (H/1440) * 3.0);
-  const margin = Math.round(H * 0.07);
+  // Rand wächst mit Schriftgröße → große Schrift wird nicht abgeschnitten
+  const margin = Math.round(Math.max(H * 0.06, fontPx * 0.7));
   const sideMargin = Math.round(W * 0.06);
   let x, y, align;
   if (pbTextPos === 'top')              { x=W/2; y=fontPx+margin; align='center'; }
@@ -2695,6 +2706,18 @@ document.getElementById('pbTextWeights')?.addEventListener('click', e => {
   pbTextWeight = parseInt(chip.dataset.weight);
   if (pbHasShot) pbRender(); else pbUpdateText();
 });
+
+/* ============================================================
+   Cache-Buster: alte Service-Worker & Caches entfernen
+   ============================================================ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  }).catch(()=>{});
+}
+if (window.caches && caches.keys) {
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(()=>{});
+}
 
 /* ============================================================
    Init
