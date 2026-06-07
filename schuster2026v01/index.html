@@ -2130,6 +2130,7 @@ let pbTextPos = 'bottom';
 let pbTextSize = 28;
 let pbSticker = '';
 let pbFacing = 'user';
+let pbBaseImage = null;  // rohes aufgenommenes Foto (Image-Objekt)
 
 const pbOverlay = document.getElementById('pbOverlay');
 const pbVideo   = document.getElementById('pbVideo');
@@ -2213,7 +2214,9 @@ async function openPhotobox() {
   pbOverlay.classList.add('open');
   document.getElementById('pbTitle').textContent = t('photoboxBtn');
   pbHasShot = false;
+  pbBaseImage = null;
   pbResult.classList.add('pb-hidden');
+  pbResult.src = '';
   pbVideo.classList.remove('pb-hidden');
   document.getElementById('pbActionsLive').classList.remove('pb-hidden');
   document.getElementById('pbActionsReview').classList.add('pb-hidden');
@@ -2243,6 +2246,39 @@ async function pbShootPhoto() {
   if (vw/vh > targetRatio) { sw = vh*targetRatio; sx = (vw-sw)/2; }
   else { sh = vw/targetRatio; sy = (vh-sh)/2; }
 
+  // Rohes Foto auf temporäres Canvas (ohne Filter/Rahmen/Text)
+  const raw = document.createElement('canvas');
+  raw.width = 1080; raw.height = 1440;
+  const rctx = raw.getContext('2d');
+  if (pbFacing === 'user') { rctx.translate(raw.width, 0); rctx.scale(-1, 1); }
+  rctx.drawImage(pbVideo, sx, sy, sw, sh, 0, 0, raw.width, raw.height);
+  rctx.setTransform(1,0,0,1,0,0);
+
+  // Als Image-Objekt speichern (Basis für alle weiteren Bearbeitungen)
+  pbBaseImage = new Image();
+  pbBaseImage.onload = () => {
+    pbHasShot = true;
+    // Kamera stoppen, Vorschau zeigen
+    pbVideo.classList.add('pb-hidden');
+    // Live-Overlays ausblenden (werden jetzt ins Canvas gerendert)
+    document.getElementById('pbTextOverlay').textContent = '';
+    document.getElementById('pbStickerOverlay').textContent = '';
+    document.getElementById('pbFrameOverlay').style.boxShadow = 'none';
+    document.getElementById('pbFrameOverlay').style.background = 'none';
+    pbResult.classList.remove('pb-hidden');
+    pbResult.className = 'filter-none';
+    pbResult.style.transform = 'none';
+    // Controls bleiben sichtbar, Actions auf Review umschalten
+    document.getElementById('pbActionsLive').classList.add('pb-hidden');
+    document.getElementById('pbActionsReview').classList.remove('pb-hidden');
+    pbRender();
+  };
+  pbBaseImage.src = raw.toDataURL('image/jpeg', 0.95);
+}
+
+// Composite aus Basis-Foto + Filter + Rahmen + Sticker + Text
+function pbRender() {
+  if (!pbBaseImage) return;
   pbCanvas.width = 1080;
   pbCanvas.height = 1440;
   const ctx = pbCanvas.getContext('2d');
@@ -2253,15 +2289,9 @@ async function pbShootPhoto() {
     warm:'saturate(1.3) brightness(1.08) hue-rotate(-8deg)',
     cool:'saturate(1.1) brightness(1.02) hue-rotate(12deg)'
   };
+  ctx.clearRect(0,0,1080,1440);
   ctx.filter = filterMap[pbFilter] || 'none';
-
-  // Nur Frontkamera spiegeln
-  if (pbFacing === 'user') {
-    ctx.translate(pbCanvas.width, 0);
-    ctx.scale(-1, 1);
-  }
-  ctx.drawImage(pbVideo, sx, sy, sw, sh, 0, 0, pbCanvas.width, pbCanvas.height);
-  ctx.setTransform(1,0,0,1,0,0);
+  ctx.drawImage(pbBaseImage, 0, 0, 1080, 1440);
   ctx.filter = 'none';
 
   pbDrawFrame(ctx);
@@ -2269,19 +2299,6 @@ async function pbShootPhoto() {
   pbDrawText(ctx);
 
   pbResult.src = pbCanvas.toDataURL('image/jpeg', 0.92);
-  pbResult.classList.remove('pb-hidden');
-  pbResult.className = 'filter-none';
-  pbResult.style.transform = 'none';
-  pbVideo.classList.add('pb-hidden');
-  // Live-Overlays ausblenden (sind jetzt im Bild)
-  document.getElementById('pbTextOverlay').textContent = '';
-  document.getElementById('pbStickerOverlay').textContent = '';
-  document.getElementById('pbFrameOverlay').style.boxShadow = 'none';
-  document.getElementById('pbFrameOverlay').style.background = 'none';
-
-  pbHasShot = true;
-  document.getElementById('pbActionsLive').classList.add('pb-hidden');
-  document.getElementById('pbActionsReview').classList.remove('pb-hidden');
 }
 
 function pbDrawSticker(ctx) {
@@ -2341,6 +2358,7 @@ async function pbPostToGallery() {
   postBtn.disabled = true;
   postBtn.textContent = t('pbPosting');
   try {
+    pbRender(); // finalen Stand sicherstellen
     // Canvas → Blob
     const blob = await new Promise(res => pbCanvas.toBlob(res, 'image/jpeg', 0.92));
     // Als File verpacken und durch bestehende Pipeline schicken
@@ -2361,7 +2379,7 @@ document.getElementById('pbClose')?.addEventListener('click', closePhotobox);
 document.getElementById('pbShoot')?.addEventListener('click', pbShootPhoto);
 document.getElementById('pbRetry')?.addEventListener('click', openPhotobox);
 document.getElementById('pbPost')?.addEventListener('click', pbPostToGallery);
-document.getElementById('pbTextInput')?.addEventListener('input', () => { if(!pbHasShot) pbUpdateText(); });
+document.getElementById('pbTextInput')?.addEventListener('input', () => { if(pbHasShot) pbRender(); else pbUpdateText(); });
 
 document.getElementById('pbFilters')?.addEventListener('click', e => {
   const chip = e.target.closest('.pb-chip');
@@ -2369,7 +2387,7 @@ document.getElementById('pbFilters')?.addEventListener('click', e => {
   document.querySelectorAll('#pbFilters .pb-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   pbFilter = chip.dataset.filter;
-  if (!pbHasShot) pbApplyVisualFilter();
+  if (pbHasShot) pbRender(); else pbApplyVisualFilter();
 });
 
 document.getElementById('pbFrames')?.addEventListener('click', e => {
@@ -2378,13 +2396,23 @@ document.getElementById('pbFrames')?.addEventListener('click', e => {
   document.querySelectorAll('#pbFrames .pb-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   pbFrame = chip.dataset.frame;
-  if (!pbHasShot) pbApplyFrame();
+  if (pbHasShot) pbRender(); else pbApplyFrame();
 });
 
 // Kamera wechseln (Front/Rück)
 document.getElementById('pbFlip')?.addEventListener('click', async () => {
   pbFacing = pbFacing === 'user' ? 'environment' : 'user';
-  if (!pbHasShot) await pbStartCamera();
+  if (pbHasShot) {
+    // Im Review: zurück zur Live-Kamera für neues Foto
+    pbHasShot = false;
+    pbBaseImage = null;
+    pbResult.classList.add('pb-hidden');
+    pbVideo.classList.remove('pb-hidden');
+    document.getElementById('pbActionsLive').classList.remove('pb-hidden');
+    document.getElementById('pbActionsReview').classList.add('pb-hidden');
+    pbApplyFrame(); pbUpdateText(); pbUpdateSticker();
+  }
+  await pbStartCamera();
 });
 
 // Schriftfarbe
@@ -2394,7 +2422,7 @@ document.getElementById('pbTextColors')?.addEventListener('click', e => {
   document.querySelectorAll('#pbTextColors .pb-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   pbTextColor = chip.dataset.color;
-  if (!pbHasShot) pbUpdateText();
+  if (pbHasShot) pbRender(); else pbUpdateText();
 });
 
 // Textposition
@@ -2404,13 +2432,13 @@ document.getElementById('pbTextPositions')?.addEventListener('click', e => {
   document.querySelectorAll('#pbTextPositions .pb-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   pbTextPos = chip.dataset.pos;
-  if (!pbHasShot) pbUpdateText();
+  if (pbHasShot) pbRender(); else pbUpdateText();
 });
 
 // Textgröße
 document.getElementById('pbTextSize')?.addEventListener('input', e => {
   pbTextSize = parseInt(e.target.value);
-  if (!pbHasShot) pbUpdateText();
+  if (pbHasShot) pbRender(); else pbUpdateText();
 });
 
 // Sticker
@@ -2420,7 +2448,7 @@ document.getElementById('pbStickers')?.addEventListener('click', e => {
   document.querySelectorAll('#pbStickers .pb-chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
   pbSticker = chip.dataset.sticker;
-  if (!pbHasShot) pbUpdateSticker();
+  if (pbHasShot) pbRender(); else pbUpdateSticker();
 });
 
 /* ============================================================
