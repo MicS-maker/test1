@@ -334,7 +334,9 @@
   /* Bühne: füllt verfügbaren Raum, Kamera prominent */
   .pb-stage{
     position:relative;flex:1 1 auto;width:100%;
-    min-height:0;background:#000;overflow:hidden;
+    min-height:0;max-height:62vh;aspect-ratio:3/4;
+    margin:auto;align-self:center;
+    background:#000;overflow:hidden;border-radius:14px;
     display:flex;align-items:center;justify-content:center;
   }
   .pb-stage video,.pb-stage canvas,.pb-stage img{
@@ -783,8 +785,9 @@
       <div class="pb-row-label" data-i18n="pbFrame">Rahmen</div>
       <div class="pb-chips" id="pbFrames">
         <button class="pb-chip active" data-frame="none" data-i18n="pbFrameNone">Kein</button>
-        <button class="pb-chip" data-frame="classic" data-i18n="pbFrameClassic">Klassisch</button>
-        <button class="pb-chip" data-frame="gold" data-i18n="pbFrameGold">Gold</button>
+        <button class="pb-chip" data-frame="leaf" data-i18n="pbFrameLeaf">Blätter</button>
+        <button class="pb-chip" data-frame="goldVintage" data-i18n="pbFrameGoldV">Gold antik</button>
+        <button class="pb-chip" data-frame="scallop" data-i18n="pbFrameScallop">Geschwungen</button>
         <button class="pb-chip" data-frame="film" data-i18n="pbFrameFilm">Film</button>
       </div>
     </div>
@@ -811,7 +814,7 @@
     </div>
     <div class="pb-row">
       <div class="pb-row-label" data-i18n="pbTextSize">Textgröße</div>
-      <input type="range" class="pb-range" id="pbTextSize" min="18" max="56" value="28">
+      <input type="range" class="pb-range" id="pbTextSize" min="16" max="48" value="24">
     </div>
     <div class="pb-row">
       <div class="pb-row-label" data-i18n="pbSticker">Sticker</div>
@@ -822,6 +825,8 @@
         <button class="pb-chip" data-sticker="✨">✨</button>
         <button class="pb-chip" data-sticker="💍">💍</button>
         <button class="pb-chip" data-sticker="🎉">🎉</button>
+        <button class="pb-chip" data-sticker="🥳">🥳</button>
+        <button class="pb-chip" data-sticker="🎊">🎊</button>
         <button class="pb-chip" data-sticker="🌸">🌸</button>
       </div>
     </div>
@@ -950,7 +955,7 @@ const I18N={
     photoboxBtn:'Photobox starten',
     photoboxTitle:'Foto-Box',photoboxSub:'Selfie mit Filter, Rahmen & Text',
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'S/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Kühl',
-    pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameClassic:'Klassisch',pbFrameGold:'Gold',pbFrameFilm:'Film',
+    pbFrame:'Rahmen',pbFrameNone:'Kein',pbFrameLeaf:'Blätter',pbFrameGoldV:'Gold antik',pbFrameScallop:'Geschwungen',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Foto aufnehmen',pbRetry:'Neu',pbPost:'In Galerie posten',
     pbTextColor:'Schriftfarbe',pbColorWhite:'Weiß',pbColorBlack:'Schwarz',
     pbTextPos:'Textposition',pbPosTop:'Oben',pbPosMiddle:'Mitte',pbPosBottom:'Unten',
@@ -993,7 +998,7 @@ const I18N={
     photoboxBtn:'Start Photobox',
     photoboxTitle:'Photo Booth',photoboxSub:'Selfie with filter, frame & text',
     pbFilter:'Filter',pbFilterNone:'Original',pbFilterBw:'B/W',pbFilterVintage:'Vintage',pbFilterWarm:'Warm',pbFilterCool:'Cool',
-    pbFrame:'Frame',pbFrameNone:'None',pbFrameClassic:'Classic',pbFrameGold:'Gold',pbFrameFilm:'Film',
+    pbFrame:'Frame',pbFrameNone:'None',pbFrameLeaf:'Botanical',pbFrameGoldV:'Vintage gold',pbFrameScallop:'Scalloped',pbFrameFilm:'Film',
     pbText:'Text',pbShoot:'📸 Take photo',pbRetry:'Retry',pbPost:'Post to gallery',
     pbTextColor:'Text color',pbColorWhite:'White',pbColorBlack:'Black',
     pbTextPos:'Text position',pbPosTop:'Top',pbPosMiddle:'Middle',pbPosBottom:'Bottom',
@@ -2174,7 +2179,7 @@ let pbFrame  = 'none';
 let pbHasShot = false;
 let pbTextColor = '#ffffff';
 let pbTextPos = 'bottom';
-let pbTextSize = 28;
+let pbTextSize = 24;
 let pbSticker = '';
 let pbFacing = 'user';
 let pbBaseImage = null;  // rohes aufgenommenes Foto (Image-Objekt)
@@ -2194,14 +2199,15 @@ function pbApplyVisualFilter() {
 
 function pbApplyFrame() {
   const fo = document.getElementById('pbFrameOverlay');
+  // Live-Annäherung (Detail erscheint final in der Vorschau nach Auslösen)
   const frames = {
-    none:   'none',
-    classic:'inset 0 0 0 12px rgba(255,255,255,.9)',
-    gold:   'inset 0 0 0 10px rgba(201,168,76,.85)',
-    film:   'inset 0 0 0 22px #111'
+    none:        'none',
+    leaf:        'inset 0 0 0 6px rgba(122,158,110,.85)',
+    goldVintage: 'inset 0 0 0 10px rgba(201,161,74,.9)',
+    scallop:     'inset 0 0 0 12px rgba(255,255,255,.95)',
+    film:        'inset 0 0 0 22px #111'
   };
   fo.style.boxShadow = frames[pbFrame] || 'none';
-  // Film: zusätzliche Perforation-Optik
   fo.style.background = pbFrame === 'film'
     ? 'repeating-linear-gradient(to bottom, transparent 0 14px, transparent 14px 20px)'
     : 'none';
@@ -2211,7 +2217,10 @@ function pbUpdateText() {
   const ov = document.getElementById('pbTextOverlay');
   ov.textContent = document.getElementById('pbTextInput').value || '';
   ov.style.color = pbTextColor;
-  ov.style.fontSize = pbTextSize + 'px';
+  // WYSIWYG: gleiche relative Größe wie im finalen Foto
+  const stageH = document.getElementById('pbStage').getBoundingClientRect().height || 400;
+  const livePx = Math.max(12, Math.round(pbTextSize * 2.3 / 1440 * stageH));
+  ov.style.fontSize = livePx + 'px';
   ov.classList.remove('pos-top','pos-middle','pos-bottom');
   ov.classList.add('pos-' + pbTextPos);
 }
@@ -2408,19 +2417,102 @@ function pbDrawSticker(ctx) {
 
 function pbDrawFrame(ctx) {
   const W = pbCanvas.width, H = pbCanvas.height;
-  if (pbFrame === 'classic') {
-    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 48;
-    ctx.strokeRect(24, 24, W-48, H-48);
-  } else if (pbFrame === 'gold') {
-    ctx.strokeStyle = 'rgba(201,168,76,.9)'; ctx.lineWidth = 40;
-    ctx.strokeRect(20, 20, W-40, H-40);
-  } else if (pbFrame === 'film') {
+  const S = Math.min(W, H); // Skalierungsbasis
+
+  if (pbFrame === 'film') {
+    const band = Math.round(W * 0.08);
     ctx.fillStyle = '#111';
-    ctx.fillRect(0,0,88,H); ctx.fillRect(W-88,0,88,H);
+    ctx.fillRect(0,0,band,H); ctx.fillRect(W-band,0,band,H);
     ctx.fillStyle = '#fff';
-    for (let y=20; y<H; y+=70) {
-      ctx.fillRect(26,y,36,44); ctx.fillRect(W-62,y,36,44);
+    const hole = Math.round(band*0.4), step = Math.round(H*0.05);
+    for (let y=step; y<H-step; y+=step) {
+      ctx.fillRect(Math.round(band*0.3), y, hole, Math.round(hole*1.2));
+      ctx.fillRect(W-band+Math.round(band*0.3), y, hole, Math.round(hole*1.2));
     }
+    return;
+  }
+
+  if (pbFrame === 'scallop') {
+    // Weiß geschwungen – weißer Rand mit Halbkreis-Bögen nach innen
+    const band = Math.round(S * 0.05);
+    const r = Math.round(S * 0.035);
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,.95)';
+    ctx.fillRect(0,0,W,band); ctx.fillRect(0,H-band,W,band);
+    ctx.fillRect(0,0,band,H); ctx.fillRect(W-band,0,band,H);
+    const place = (cx,cy) => { ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); };
+    const nX = Math.max(3, Math.round(W/(r*2)));
+    const sX = W/nX;
+    for (let i=0;i<nX;i++){ place(sX*i+sX/2, band); place(sX*i+sX/2, H-band); }
+    const nY = Math.max(4, Math.round(H/(r*2)));
+    const sY = H/nY;
+    for (let i=0;i<nY;i++){ place(band, sY*i+sY/2); place(W-band, sY*i+sY/2); }
+    ctx.restore();
+    return;
+  }
+
+  if (pbFrame === 'goldVintage') {
+    // Goldener antiker Rahmen: Doppellinie + Eck-Ornamente
+    const grad = ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0,'#f3dd9b'); grad.addColorStop(.5,'#c9a14a'); grad.addColorStop(1,'#9c7626');
+    ctx.strokeStyle = grad;
+    // äußere dicke Linie
+    ctx.lineWidth = Math.round(S*0.035);
+    const o = Math.round(S*0.03);
+    ctx.strokeRect(o, o, W-2*o, H-2*o);
+    // innere dünne Linie
+    ctx.lineWidth = Math.round(S*0.008);
+    const inn = Math.round(S*0.065);
+    ctx.strokeRect(inn, inn, W-2*inn, H-2*inn);
+    // Eck-Ornamente (kleine Diagonalen + Punkt)
+    ctx.fillStyle = grad;
+    const cs = Math.round(S*0.05);
+    const corner = (cx,cy,fx,fy) => {
+      ctx.beginPath();
+      ctx.arc(cx+fx*cs*0.4, cy+fy*cs*0.4, S*0.012, 0, Math.PI*2);
+      ctx.fill();
+      ctx.lineWidth = Math.round(S*0.012);
+      ctx.beginPath();
+      ctx.moveTo(cx+fx*cs, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy+fy*cs);
+      ctx.stroke();
+    };
+    const m = inn;
+    corner(m,m,1,1); corner(W-m,m,-1,1); corner(m,H-m,1,-1); corner(W-m,H-m,-1,-1);
+    return;
+  }
+
+  if (pbFrame === 'leaf') {
+    // Botanischer Blätterrahmen: dünne grüne Linie + Blattbüschel in den Ecken
+    const sage = '#7a9e6e', sageDark = '#5e7d54';
+    ctx.strokeStyle = 'rgba(122,158,110,.85)';
+    ctx.lineWidth = Math.round(S*0.006);
+    const o = Math.round(S*0.04);
+    ctx.strokeRect(o, o, W-2*o, H-2*o);
+
+    const leaf = (x,y,len,ang,col) => {
+      ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+      ctx.fillStyle = col; ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(len*0.5,-len*0.32,len,0);
+      ctx.quadraticCurveTo(len*0.5, len*0.32,0,0);
+      ctx.fill();
+      // Mittelrippe
+      ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=len*0.04;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len*0.9,0); ctx.stroke();
+      ctx.restore();
+    };
+    const cluster = (cx,cy,baseAng) => {
+      const L = S*0.11;
+      leaf(cx,cy,L,baseAng,sage);
+      leaf(cx,cy,L*0.8,baseAng+0.5,sageDark);
+      leaf(cx,cy,L*0.8,baseAng-0.5,sageDark);
+      leaf(cx,cy,L*0.6,baseAng+1.0,sage);
+    };
+    cluster(o,o,Math.PI*0.25);
+    cluster(W-o,o,Math.PI*0.75);
+    cluster(o,H-o,-Math.PI*0.25);
+    cluster(W-o,H-o,-Math.PI*0.75);
+    return;
   }
 }
 
