@@ -1920,30 +1920,22 @@ function renderMsgList(rows){
         + (date?'<span class="msg-card-date">'+date+'</span>':'') + '</div>';
     if(text) html+='<div class="msg-card-text">'+escapeHtml(text)+'</div>';
     if(r.audio_url){
-      // Platzhalter mit Pfad – wird nach dem Einfügen asynchron signiert
-      html+='<audio controls preload="none" data-audiopath="'+escapeHtml(r.audio_url)+'"></audio>';
+      html+='<audio controls preload="none" src="'+escapeHtml(audioSrc(r.audio_url))+'"></audio>';
     }
     html+='</div>';
   });
   list.innerHTML=html;
-  signAudioPlayers();
 }
 
-async function signAudioPlayers(){
-  const players = document.querySelectorAll('#msgList audio[data-audiopath]');
-  for(const el of players){
-    let raw = el.getAttribute('data-audiopath') || '';
-    if(!raw){ continue; }
-    // Pfad extrahieren (alte Einträge können volle URL enthalten)
-    let path = raw;
-    const marker = '/moments/';
-    if(raw.includes(marker)) path = raw.split(marker)[1];
-    try{
-      const map = await signUrls([path]);
-      if(map[path]) el.src = map[path];
-    }catch(e){ console.warn('Audio-Signierung:', e); }
-    el.removeAttribute('data-audiopath');
-  }
+function audioSrc(val){
+  if(!val) return '';
+  // Schon volle öffentliche URL? direkt nutzen
+  if(val.includes('/object/public/moments-assets/')) return val;
+  // Pfad extrahieren (alte Einträge: voller Link oder reiner Pfad)
+  let path = val;
+  if(val.includes('/moments-assets/')) path = val.split('/moments-assets/')[1];
+  else if(val.includes('/moments/'))   path = val.split('/moments/')[1];
+  return `${SUPABASE_URL}/storage/v1/object/public/moments-assets/${path}`;
 }
 
 function escapeHtml(s){
@@ -2019,13 +2011,15 @@ async function uploadAudioToSupabase(){
   const type=audioBlob.type||'audio/mp4';
   const ext=type.includes('mp4')||type.includes('aac')?'m4a':(type.includes('ogg')?'ogg':'webm');
   const filename=`${EVENT_ID}/audio_${Date.now()}.${ext}`;
-  const res=await fetch(`${SUPABASE_URL}/storage/v1/object/moments/${filename}`,{
+  // Audio in ÖFFENTLICHEN Bucket (moments-assets) → direkt per URL abspielbar
+  const res=await fetch(`${SUPABASE_URL}/storage/v1/object/moments-assets/${filename}`,{
     method:'POST',
     headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`,'Content-Type':type,'x-upsert':'true'},
     body:audioBlob
   });
   if(!res.ok)throw new Error('Audio-Upload fehlgeschlagen');
-  return filename; // nur Pfad speichern – wird beim Anzeigen signiert
+  // Öffentliche URL speichern (Fotos bleiben privat im moments-Bucket)
+  return `${SUPABASE_URL}/storage/v1/object/public/moments-assets/${filename}`;
 }
 
 msgSend.addEventListener('click',async()=>{
