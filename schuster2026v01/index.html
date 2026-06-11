@@ -273,6 +273,16 @@
   .admin-banner .exit{position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.25);border:none;color:#fff;font-size:11px;padding:3px 9px;border-radius:50px;cursor:pointer}
   .del-btn{display:none;position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;background:rgba(220,53,69,.92);color:#fff;border:none;cursor:pointer;font-size:14px;line-height:1;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:5}
   body.admin-on .del-btn{display:flex}
+  /* Nachrichtenliste nur für Admin */
+  .msg-list{display:none;margin-top:28px;text-align:left}
+  body.admin-on .msg-list{display:block}
+  .msg-list-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--ink);margin-bottom:14px;text-align:center}
+  .msg-card{background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+  .msg-card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .msg-card-name{font-weight:600;color:var(--accent-deep);font-size:14px}
+  .msg-card-date{font-size:12px;color:var(--soft-ink);white-space:nowrap}
+  .msg-card-text{font-size:14px;color:var(--ink);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .msg-card audio{width:100%;margin-top:10px}
   .del-btn:hover{background:#dc3545}
   .del-btn.lb{top:14px;left:14px;width:38px;height:38px;font-size:20px}
 
@@ -728,6 +738,7 @@
       </div>
       <button class="msg-send" id="msgSend" data-i18n="msgSend">Nachricht absenden</button>
       <div class="msg-feedback" id="msgFeedback"></div>
+      <div class="msg-list" id="msgList"></div>
     </div>
 
     <!-- Galerie -->
@@ -1868,13 +1879,47 @@ const msgName=document.getElementById('msgName'),
 async function loadMsgCount(){
   if(!sbReady)return;
   try{
-    const res=await fetch(`${SUPABASE_URL}/rest/v1/messages?event_id=eq.${EVENT_ID}&select=*`,{
+    // Neueste zuerst, Datum mitladen
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/messages?event_id=eq.${EVENT_ID}&select=*&order=created_at.desc`,{
       headers:{apikey:SB_KEY,Authorization:`Bearer ${SB_KEY}`}
     });
     const rows=await res.json();
-    const count=rows.length||0;
+    const count=Array.isArray(rows)?rows.length:0;
     document.getElementById('msgCount').textContent=count>0?t('msgCount',count):t('msgEmpty');
+    renderMsgList(Array.isArray(rows)?rows:[]);
   }catch(e){document.getElementById('msgCount').textContent=t('msgEmpty');}
+}
+
+function fmtMsgDate(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  if(isNaN(d))return '';
+  return d.toLocaleDateString(LANG==='en'?'en-GB':'de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})
+       + ', ' + d.toLocaleTimeString(LANG==='en'?'en-GB':'de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+
+function renderMsgList(rows){
+  const list=document.getElementById('msgList');
+  if(!list)return;
+  if(!rows.length){ list.innerHTML=''; return; }
+  const title = LANG==='en' ? 'All messages' : 'Alle Nachrichten';
+  let html='<div class="msg-list-title">'+title+'</div>';
+  rows.forEach(r=>{
+    const name=(r.name||'').trim() || (LANG==='en'?'Anonymous':'Anonym');
+    const date=fmtMsgDate(r.created_at);
+    const text=(r.message||'').trim();
+    html+='<div class="msg-card">';
+    html+='<div class="msg-card-head"><span class="msg-card-name">'+escapeHtml(name)+'</span>'
+        + (date?'<span class="msg-card-date">'+date+'</span>':'') + '</div>';
+    if(text) html+='<div class="msg-card-text">'+escapeHtml(text)+'</div>';
+    if(r.audio_url) html+='<audio controls preload="none" src="'+r.audio_url+'"></audio>';
+    html+='</div>';
+  });
+  list.innerHTML=html;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* === Sprachaufnahme === */
