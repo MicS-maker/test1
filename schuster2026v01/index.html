@@ -1892,10 +1892,17 @@ async function loadMsgCount(){
 
 function fmtMsgDate(iso){
   if(!iso)return '';
-  const d=new Date(iso);
+  let s=String(iso);
+  // Falls kein Zeitzonen-Kennzeichen vorhanden (timestamp ohne tz): als UTC behandeln
+  if(!/[zZ]|[+\-]\d{2}:?\d{2}$/.test(s)){
+    s = s.replace(' ','T') + 'Z';
+  }
+  const d=new Date(s);
   if(isNaN(d))return '';
-  return d.toLocaleDateString(LANG==='en'?'en-GB':'de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})
-       + ', ' + d.toLocaleTimeString(LANG==='en'?'en-GB':'de-DE',{hour:'2-digit',minute:'2-digit'});
+  // Anzeige in Berliner Zeit
+  const opt={timeZone:'Europe/Berlin'};
+  return d.toLocaleDateString(LANG==='en'?'en-GB':'de-DE',{...opt,day:'2-digit',month:'2-digit',year:'numeric'})
+       + ', ' + d.toLocaleTimeString(LANG==='en'?'en-GB':'de-DE',{...opt,hour:'2-digit',minute:'2-digit'});
 }
 
 function renderMsgList(rows){
