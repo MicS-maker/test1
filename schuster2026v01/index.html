@@ -1919,10 +1919,31 @@ function renderMsgList(rows){
     html+='<div class="msg-card-head"><span class="msg-card-name">'+escapeHtml(name)+'</span>'
         + (date?'<span class="msg-card-date">'+date+'</span>':'') + '</div>';
     if(text) html+='<div class="msg-card-text">'+escapeHtml(text)+'</div>';
-    if(r.audio_url) html+='<audio controls preload="none" src="'+r.audio_url+'"></audio>';
+    if(r.audio_url){
+      // Platzhalter mit Pfad – wird nach dem Einfügen asynchron signiert
+      html+='<audio controls preload="none" data-audiopath="'+escapeHtml(r.audio_url)+'"></audio>';
+    }
     html+='</div>';
   });
   list.innerHTML=html;
+  signAudioPlayers();
+}
+
+async function signAudioPlayers(){
+  const players = document.querySelectorAll('#msgList audio[data-audiopath]');
+  for(const el of players){
+    let raw = el.getAttribute('data-audiopath') || '';
+    if(!raw){ continue; }
+    // Pfad extrahieren (alte Einträge können volle URL enthalten)
+    let path = raw;
+    const marker = '/moments/';
+    if(raw.includes(marker)) path = raw.split(marker)[1];
+    try{
+      const map = await signUrls([path]);
+      if(map[path]) el.src = map[path];
+    }catch(e){ console.warn('Audio-Signierung:', e); }
+    el.removeAttribute('data-audiopath');
+  }
 }
 
 function escapeHtml(s){
@@ -2004,7 +2025,7 @@ async function uploadAudioToSupabase(){
     body:audioBlob
   });
   if(!res.ok)throw new Error('Audio-Upload fehlgeschlagen');
-  return getPublicUrl(filename);
+  return filename; // nur Pfad speichern – wird beim Anzeigen signiert
 }
 
 msgSend.addEventListener('click',async()=>{
