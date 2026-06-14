@@ -186,6 +186,14 @@
   .like-badge{position:absolute;bottom:6px;right:6px;background:rgba(255,255,255,.88);border-radius:50px;padding:3px 8px;display:flex;align-items:center;gap:3px;font-size:12px;font-weight:500;color:var(--rose);cursor:pointer;transition:transform .15s;backdrop-filter:blur(4px)}
   .like-badge svg{width:13px;height:13px;fill:var(--rose)}
   .more{grid-column:1/-1;text-align:center;font-size:13px;color:var(--soft-ink);padding:8px}
+  .more-wrap{grid-column:1/-1;text-align:center;padding:18px 8px}
+  .more-btn{
+    background:transparent;color:var(--accent-deep);
+    border:2px solid var(--accent);border-radius:50px;cursor:pointer;
+    font-family:'Jost',sans-serif;font-weight:500;font-size:14px;
+    letter-spacing:.03em;padding:12px 30px;transition:background .2s,color .2s;
+  }
+  .more-btn:hover{background:var(--accent);color:#fff}
 
   /* === Podium === */
   .podium{margin-bottom:32px}
@@ -949,7 +957,7 @@ const SUPABASE_KEY = "sb_publishable_-NBQeOr46tAHPJyWR-NbmA_Qgcqny4t";
 
 // Event-ID – wird aus der URL gelesen (z.B. /moments/hochzeiten/mueller2024)
 // Oder hier manuell setzen für Tests:
-const EVENT_ID_OVERRIDE = "schuster2026v01"; // leer = Event-ID automatisch aus Ordnername (URL)
+const EVENT_ID_OVERRIDE = "schusterv01"; // leer = Event-ID automatisch aus Ordnername (URL)
 
 /* ============================================================
    Event-ID aus URL oder Override
@@ -1644,8 +1652,10 @@ const galleryEl=document.getElementById('gallery'),
       podium=document.getElementById('podium'),
       podiumRow=document.getElementById('podiumRow');
 
-const MAX_SHOWN=60;
-let currentItems=[];
+const PAGE_SIZE=60;       // wie viele pro Schritt angezeigt werden
+let allItems=[];          // ALLE geladenen Fotos
+let shownCount=PAGE_SIZE;  // aktuell sichtbare Anzahl
+let currentItems=[];      // die tatsächlich gerenderten (für Lightbox/Podium)
 let currentIndex=0;
 let likeCounts={};
 let hiddenSet=new Set();
@@ -1699,7 +1709,7 @@ async function loadGallery(){
       },
       body: JSON.stringify({
         prefix: `${EVENT_ID}/`,
-        limit: 200,
+        limit: 2000,
         sortBy:{column:'created_at',order:'desc'}
       })
     });
@@ -1735,7 +1745,8 @@ async function loadGallery(){
 
     likeCounts=await fetchLikes();
     galleryHint.textContent=t('galleryCount',items.length);
-    currentItems=items.slice(0,MAX_SHOWN);
+    allItems=items;
+    shownCount=Math.min(PAGE_SIZE, allItems.length);
     renderGallery();
     renderPodium();
   }catch(e){
@@ -1748,6 +1759,7 @@ const heartSVG='<svg viewBox="0 0 24 24"><path d="M20.8 4.6c-1.8-1.6-4.5-1.3-6.1
 
 function renderGallery(){
   galleryEl.innerHTML='';
+  currentItems = allItems.slice(0, shownCount);
   currentItems.forEach((it,idx)=>{
     const tile=document.createElement('div');
     tile.className='tile';
@@ -1772,24 +1784,34 @@ function renderGallery(){
     tile.appendChild(del);
     galleryEl.appendChild(tile);
   });
-  if(currentItems.length>=MAX_SHOWN){
-    const m=document.createElement('div'); m.className='more';
-    m.textContent='… weitere Fotos folgen';
-    galleryEl.appendChild(m);
+  // "Mehr laden"-Button wenn noch Fotos übrig sind
+  if(shownCount < allItems.length){
+    const wrap=document.createElement('div');
+    wrap.className='more-wrap';
+    const btn=document.createElement('button');
+    btn.className='more-btn';
+    const rest=allItems.length-shownCount;
+    btn.textContent = (LANG==='en'?'Show more':'Mehr anzeigen') + ' (' + rest + ')';
+    btn.addEventListener('click',()=>{
+      shownCount=Math.min(shownCount+PAGE_SIZE, allItems.length);
+      renderGallery();
+    });
+    wrap.appendChild(btn);
+    galleryEl.appendChild(wrap);
   }
 }
 
 function bump(el){el.style.transform='scale(1.25)';setTimeout(()=>el.style.transform='',150);}
 
 function renderPodium(){
-  const ranked=[...currentItems].map(it=>({it,c:countOf(it.public_id)}))
+  const ranked=[...allItems].map(it=>({it,c:countOf(it.public_id)}))
     .filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3);
   if(!ranked.length){podium.style.display='none';return;}
   podium.style.display='block';
   podiumRow.innerHTML='';
   const rankClass=['p1','p2','p3'],medal=['🥇','🥈','🥉'];
   ranked.forEach((x,i)=>{
-    const idx=currentItems.indexOf(x.it);
+    const idx=allItems.indexOf(x.it);
     const item=document.createElement('div');
     item.className='podium-item '+rankClass[i];
     item.innerHTML=`<div class="rank">${medal[i]}</div><img src="${x.it.url}" alt="Top-Foto"><div class="pcount">${heartSVG}${x.c}</div>`;
@@ -1800,7 +1822,7 @@ function renderPodium(){
 
 function openLightbox(idx){currentIndex=idx;showCurrent();lightbox.classList.add('show');}
 function showCurrent(){
-  const it=currentItems[currentIndex];
+  const it=allItems[currentIndex];
   if(!it)return;
   // Sofort Thumbnail zeigen (immer vorhanden), dann auf Vollbild tauschen
   lightboxImg.src = it.url;
@@ -1808,7 +1830,7 @@ function showCurrent(){
     const hi = new Image();
     hi.onload = () => {
       // nur tauschen wenn noch dasselbe Foto offen ist
-      if (currentItems[currentIndex] === it) lightboxImg.src = it.fullUrl;
+      if (allItems[currentIndex] === it) lightboxImg.src = it.fullUrl;
     };
     hi.src = it.fullUrl;
   }
@@ -1817,8 +1839,8 @@ function showCurrent(){
 
 lbClose.addEventListener('click',()=>lightbox.classList.remove('show'));
 lightbox.addEventListener('click',e=>{if(e.target===lightbox)lightbox.classList.remove('show');});
-lbPrev.addEventListener('click',e=>{e.stopPropagation();currentIndex=(currentIndex-1+currentItems.length)%currentItems.length;showCurrent();});
-lbNext.addEventListener('click',e=>{e.stopPropagation();currentIndex=(currentIndex+1)%currentItems.length;showCurrent();});
+lbPrev.addEventListener('click',e=>{e.stopPropagation();currentIndex=(currentIndex-1+allItems.length)%allItems.length;showCurrent();});
+lbNext.addEventListener('click',e=>{e.stopPropagation();currentIndex=(currentIndex+1)%allItems.length;showCurrent();});
 lbLike.addEventListener('click',async e=>{
   e.stopPropagation();
   const it=currentItems[currentIndex];
@@ -1850,6 +1872,7 @@ async function softDelete(publicId){
       body:JSON.stringify({event_id:EVENT_ID, public_id:publicId})
     });
     hiddenSet.add(publicId);
+    allItems=allItems.filter(it=>it.public_id!==publicId);
     currentItems=currentItems.filter(it=>it.public_id!==publicId);
     renderGallery(); renderPodium();
     if(lightbox.classList.contains('show'))lightbox.classList.remove('show');
@@ -2121,7 +2144,7 @@ adminExit.addEventListener('click',()=>document.body.classList.remove('admin-on'
 
 lbDel.addEventListener('click',e=>{
   e.stopPropagation();
-  if(currentItems[currentIndex])softDelete(currentItems[currentIndex].public_id);
+  if(allItems[currentIndex])softDelete(allItems[currentIndex].public_id);
 });
 
 /* ============================================================
